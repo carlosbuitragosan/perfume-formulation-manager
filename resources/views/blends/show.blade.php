@@ -1,6 +1,17 @@
 <x-app-layout>
    <x-slot name="header">
-      <h2 class="font-semibold text-xl">{{ $blend->name }}</h2>
+      <div class="flex items-center justify-between">
+         <h2 class="font-semibold text-xl">{{ $blend->name }}</h2>
+         <div class="flex gap-2">
+            <x-link>EDIT</x-link>
+
+            <form method="POST" action="" onsubmit="return confirm('Delete this material?')">
+               @csrf
+               @method('DELETE')
+               <x-danger-button>DELETE</x-danger-button>
+            </form>
+         </div>
+      </div>
    </x-slot>
 
    <div class="p-4 space-y-4">

@@ -209,3 +209,43 @@ test('create blend shows inline validation error per field', function () {
     expect($row1->count())->toBe(1);
     expect($row1->filter('[data-testid="error-materials.1.drops"]')->count())->toBe(1);
 });
+
+test('Each blend shows a delete & edit button in the show page', function () {
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+    $createUrl = route('blends.create');
+    $postUrl = route('blends.store');
+
+    $payload = [
+        'name' => 'Moonshine',
+        'materials' => [
+            [
+                'material_id' => $lavender->id,
+                'drops' => 1,
+                'dilution' => 25,
+            ],
+            [
+                'material_id' => $neroli->id,
+                'drops' => '5',
+                'dilution' => 25,
+            ],
+        ],
+    ];
+
+    $response = postAs($this->user, $postUrl, $payload);
+
+    $blend = Blend::where('user_id', $this->user->id)
+        ->where('name', 'Moonshine')
+        ->firstOrFail();
+    $redirectUrl = route('blends.show', $blend);
+
+    $response->assertRedirect($redirectUrl);
+
+    [, $crawler] = getPageCrawler($this->user, $redirectUrl);
+
+    $blendHeader = $crawler->filter('header');
+
+    expect($blendHeader->text())->toContain('Moonshine');
+    expect($blendHeader->text())->toContain('EDIT');
+    expect($blendHeader->text())->toContain('DELETE');
+});
