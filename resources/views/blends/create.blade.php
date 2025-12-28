@@ -15,11 +15,17 @@
             <span class="text-sm">Blend Name</span>
             <input type="text" name="name" value="{{ old('name') }}" class="p-2 w-full" />
          </label>
+         @error('name')
+            <div data-testid="error-name">
+               <x-flash type="error" class="">{{ $message }}</x-flash>
+            </div>
+         @enderror
 
          <h3 class="font-medium">Ingredients</h3>
-
          @error('materials')
-            <x-flash type="error">{{ $message }}</x-flash>
+            <div>
+               <x-flash type="error">{{ $message }}</x-flash>
+            </div>
          @enderror
 
          @php
@@ -43,15 +49,23 @@
                         </option>
                      @endforeach
                   </select>
+                  @error("materials.$i.material_id")
+                     <div data-testid="error-materials.{{ $i }}.material_id">
+                        <x-flash type="error">{{ $message }}</x-flash>
+                     </div>
+                  @enderror
+
                   <div class="flex gap-4">
                      {{-- DROPS --}}
                      <input
-                        type="number"
+                        type="text"
+                        inputmode="numeric"
                         name="materials[{{ $i }}][drops]"
                         placeholder="number of drops"
                         class="w-full p-2"
                         value="{{ $row['drops'] ?? '' }}"
                      />
+
                      {{-- DILUTION --}}
                      <select name="materials[{{ $i }}][dilution]" class="w-full p-2">
                         @foreach ([25, 10, 1] as $d)
@@ -64,6 +78,11 @@
                         @endforeach
                      </select>
                   </div>
+                  @error("materials.$i.drops")
+                     <div data-testid="error-materials.{{ $i }}.drops">
+                        <x-flash type="error">{{ $message }}</x-flash>
+                     </div>
+                  @enderror
                </div>
             @endforeach
          </div>
@@ -89,7 +108,8 @@
                <div class="flex gap-4">
                   {{-- DROPS --}}
                   <input
-                     type="number"
+                     type="text"
+                     inputmode="numeric"
                      name="materials[__INDEX__][drops]"
                      placeholder="number of drops"
                      class="w-full p-2"

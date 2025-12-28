@@ -173,3 +173,39 @@ it('rejects duplicate materials in the same blend submission', function () {
     $this->assertDatabaseCount('blend_version_ingredients', 0);
 
 });
+
+test('create blend shows inline validation error per field', function () {
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+    $createUrl = route('blends.create');
+    $postUrl = route('blends.store');
+    $payload = [
+        'name' => '',
+        'materials' => [
+            [
+                'material_id' => $lavender->id,
+                'drops' => 1,
+                'dilution' => 25,
+            ],
+            [
+                'material_id' => $neroli->id,
+                'drops' => '',
+                'dilution' => 25,
+            ],
+
+        ],
+    ];
+    $response = $this->from($createUrl)->post($postUrl, $payload);
+
+    $response->assertRedirect($createUrl);
+    $response->assertSessionHasErrors(['name', 'materials.1.drops']);
+    $page = $this->get($createUrl)->assertOk();
+
+    $crawler = crawl($page);
+
+    expect($crawler->filter('[data-testid="error-name"]')->count())->toBe(1);
+
+    $row1 = $crawler->filter('[data-testid="ingredient-row"][data-index="1"]');
+    expect($row1->count())->toBe(1);
+    expect($row1->filter('[data-testid="error-materials.1.drops"]')->count())->toBe(1);
+});

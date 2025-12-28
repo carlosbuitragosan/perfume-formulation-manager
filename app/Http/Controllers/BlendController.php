@@ -6,6 +6,7 @@ use App\Models\Blend;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class BlendController extends Controller
 {
@@ -20,16 +21,46 @@ class BlendController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'materials' => ['required', 'array', 'min:1'],
-            'materials.*.material_id' => ['required', 'integer', 'exists:materials,id'],
-            'materials.*.drops' => ['required', 'integer', 'min:1', 'max:999'],
-            'materials.*.dilution' => ['required', 'integer', 'in:25,10,1'],
-        ]);
+        $materials = collect($request->input('materials', []))
+            ->filter(function ($row) {
+                $row = is_array($row) ? $row : [];
+                $hasMaterial = ! empty($row['material_id']);
+                $hasDrops = isset($row['drops']) && $row['drops'] !== '';
 
-        $validator->after(function ($validator) {
-            $materials = $validator->getData()['materials'] ?? [];
+                return $hasMaterial || $hasDrops;
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['materials' => $materials]);
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'materials' => ['required', 'array', 'min:2'],
+                'materials.*.material_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('materials', 'id')
+                        ->where(fn ($q) => $q->where('user_id', auth()->id())),
+                ],
+                'materials.*.drops' => ['required', 'integer', 'min:1', 'max:999'],
+                'materials.*.dilution' => ['required', 'integer', 'in:25,10,1'],
+            ],
+            [
+                'name.required' => 'Enter a blend name',
+                'materials.required' => 'Add at least two ingredients',
+                'materials.min' => 'Add at least two ingredients',
+                'materials.*.material_id.required' => 'Select a material',
+                'materials.*.drops.required' => 'Enter the number of drops',
+                'materials.*.drops.integer' => 'Drops must be a whole number',
+                'materials.*.drops.max' => 'Drops cannot exceed 999',
+            ]
+        );
+
+        $validator->after(function ($validator) use ($request) {
+            $materials = $request->input('materials', []);
 
             $ids = collect($materials)
                 ->pluck('material_id')
