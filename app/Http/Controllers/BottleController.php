@@ -142,7 +142,8 @@ class BottleController extends Controller
         $bottle->is_active = false;
         $bottle->save();
 
-        return redirect()->route('materials.show', $bottle->material_id);
+        return redirect()->route('materials.show', $bottle->material_id)
+            ->with('ok', 'Bottle marked as finished');
     }
 
     public function destroy(Request $request, Bottle $bottle)

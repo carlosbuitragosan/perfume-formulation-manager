@@ -65,6 +65,8 @@ class Material extends Model
 
     public function bottles()
     {
-        return $this->hasMany(Bottle::class)->latest();
+        return $this->hasMany(Bottle::class)
+            ->orderByDesc('is_active')
+            ->orderByDesc('updated_at');
     }
 }
