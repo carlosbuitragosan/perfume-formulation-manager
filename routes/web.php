@@ -45,7 +45,7 @@ Route::middleware('auth')
 
         // Blends
         Route::resource('blends', BlendController::class)
-            ->only(['create', 'store', 'show']);
+            ->only(['create', 'store', 'show', 'destroy']);
 
     });
 

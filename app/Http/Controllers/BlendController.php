@@ -125,4 +125,15 @@ class BlendController extends Controller
 
         return view('blends.show', compact('blend', 'version', 'rows'));
     }
+
+    public function destroy(Blend $blend)
+    {
+        abort_unless($blend->user_id === auth()->id(), 404);
+
+        $blend->delete();
+
+        return redirect()
+            ->route('dashboard')
+            ->with('ok', 'Blend deleted.');
+    }
 }

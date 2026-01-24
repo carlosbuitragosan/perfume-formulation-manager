@@ -249,3 +249,20 @@ test('Each blend shows a delete & edit button in the show page', function () {
     expect($blendHeader->text())->toContain('EDIT');
     expect($blendHeader->text())->toContain('DELETE');
 });
+
+test('user can delete a blend', function () {
+    $blend = Blend::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Moonshine',
+    ]);
+
+    $deleteUrl = route('blends.destroy', $blend);
+    $redirectUrl = route('dashboard');
+
+    $response = $this->delete($deleteUrl)
+        ->assertRedirect($redirectUrl);
+
+    $this->assertDatabaseMissing('blends', [
+        'id' => $blend->id,
+    ]);
+});
