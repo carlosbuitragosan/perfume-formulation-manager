@@ -152,4 +152,81 @@ class BlendController extends Controller
 
         return view('blends.edit', compact('blend', 'version', 'materials'));
     }
+
+    public function update(Request $request, Blend $blend)
+    {
+        abort_unless($blend->user_id === auth()->id(), 404);
+
+        $materials = collect($request->input('materials', []))
+            ->filter(function ($row) {
+                $row = is_array($row) ? $row : [];
+                $hasMaterial = ! empty($row['material_id']);
+                $hasDrops = isset($row['drops']) && $row['drops'] !== '';
+
+                return $hasMaterial || $hasDrops;
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['materials' => $materials]);
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'materials' => ['required', 'array', 'min:2'],
+                'materials.*.material_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('materials', 'id')
+                        ->where(fn ($q) => $q->where('user_id', auth()->id())),
+                ],
+                'materials.*.drops' => ['required', 'integer', 'min:1', 'max:999'],
+                'materials.*.dilution' => ['required', 'integer', 'in:25,10,1'],
+            ],
+            [
+                'name.required' => 'Enter a blend name',
+                'materials.required' => 'Add at least two ingredients',
+                'materials.min' => 'Add at least two ingredients',
+                'materials.*.material_id.required' => 'Select a material',
+                'materials.*.drops.required' => 'Enter the number of drops',
+                'materials.*.drops.integer' => 'Drops must be a whole number',
+                'materials.*.drops.max' => 'Drops cannot exceed 999',
+            ]
+        );
+
+        $validator->after(function ($validator) use ($request) {
+            $materials = $request->input('materials', []);
+
+            $ids = collect($materials)
+                ->pluck('material_id')
+                ->filter();
+
+            if ($ids->count() !== $ids->unique()->count()) {
+                $validator->errors()->add('materials', 'You can\'t use the same material twice.');
+            }
+        });
+
+        $data = $validator->validate();
+
+        $version = $blend->versions()
+            ->where('version', '1.0')
+            ->firstOrFail();
+
+        $blend->update([
+            'name' => trim($data['name']),
+        ]);
+
+        $version->ingredients()->delete();
+
+        foreach ($data['materials'] as $row) {
+            $version->ingredients()->create([
+                'material_id' => $row['material_id'],
+                'drops' => $row['drops'],
+                'dilution' => $row['dilution'],
+            ]);
+        }
+
+        return redirect()->route('blends.show', $blend);
+    }
 }

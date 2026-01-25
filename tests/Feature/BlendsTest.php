@@ -301,3 +301,74 @@ test('user can view the edit form for a blend and it is prefilled', function () 
     expect($crawler->filter('input[name*="[drops]"][value="5"]')->count())->toBeGreaterThanOrEqual(1);
     expect($crawler->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBeGreaterThanOrEqual(1);
 });
+
+test('user can update a blend from the edit form', function () {
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+    $blend = Blend::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Moonshine',
+    ]);
+
+    $version = $blend->versions()->create(['version' => '1.0']);
+    $version->ingredients()->create([
+        'material_id' => $lavender->id,
+        'drops' => 2,
+        'dilution' => 25,
+    ]);
+    $version->ingredients()->create([
+        'material_id' => $neroli->id,
+        'drops' => 5,
+        'dilution' => 25,
+    ]);
+
+    $editUrl = route('blends.edit', $blend);
+    $updateUrl = route('blends.update', $blend);
+    $redirectUrl = route('blends.show', $blend);
+
+    $payload = [
+        'name' => 'Moonshine-2',
+        'materials' => [
+            [
+                'material_id' => $lavender->id,
+                'drops' => 10,
+                'dilution' => 25,
+            ],
+            [
+                'material_id' => $neroli->id,
+                'drops' => 1,
+                'dilution' => 10,
+            ],
+        ],
+    ];
+
+    $this->from($editUrl)
+        ->put($updateUrl, $payload)
+        ->assertRedirect($redirectUrl);
+
+    $this->assertDatabaseHas('blends', [
+        'id' => $blend->id,
+        'name' => 'Moonshine-2',
+    ]);
+
+    $this->assertDatabaseHas('blend_version_ingredients', [
+        'blend_version_id' => $version->id,
+        'material_id' => $lavender->id,
+        'drops' => 10,
+        'dilution' => 25,
+    ]);
+
+    $this->assertDatabaseHas('blend_version_ingredients', [
+        'blend_version_id' => $version->id,
+        'material_id' => $neroli->id,
+        'drops' => 1,
+        'dilution' => 10,
+    ]);
+
+    $this->assertDatabaseMissing('blend_version_ingredients', [
+        'blend_version_id' => $version->id,
+        'material_id' => $lavender->id,
+        'drops' => 2,
+        'dilution' => 25,
+    ]);
+});
