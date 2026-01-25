@@ -3,7 +3,7 @@
       <div class="flex items-center justify-between">
          <h2 class="font-semibold text-xl">{{ $blend->name }}</h2>
          <div class="flex gap-2">
-            <x-link>EDIT</x-link>
+            <x-link href="{{ route('blends.edit', $blend) }}">EDIT</x-link>
 
             <form method="POST" action="" onsubmit="return confirm('Delete this material?')">
                @csrf

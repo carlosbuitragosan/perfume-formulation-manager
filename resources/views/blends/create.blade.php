@@ -35,10 +35,14 @@
 
          {{-- INGREDIENTS --}}
          <div class="space-y-6" data-testid="ingredients-container">
-            @foreach ($rows as $i => $row)
-               <div class="flex flex-col gap-3" data-testid="ingredient-row" data-index="{{ $i }}">
+            @foreach ($rows as $index => $row)
+               <div
+                  class="flex flex-col gap-3"
+                  data-testid="ingredient-row"
+                  data-index="{{ $index }}"
+               >
                   {{-- MATERIAL --}}
-                  <select name="materials[{{ $i }}][material_id]" class="w-full p-2">
+                  <select name="materials[{{ $index }}][material_id]" class="w-full p-2">
                      <option value="">Select material</option>
                      @foreach ($materials as $material)
                         <option
@@ -49,8 +53,8 @@
                         </option>
                      @endforeach
                   </select>
-                  @error("materials.$i.material_id")
-                     <div data-testid="error-materials.{{ $i }}.material_id">
+                  @error("materials.$index.material_id")
+                     <div data-testid="error-materials.{{ $index }}.material_id">
                         <x-flash type="error">{{ $message }}</x-flash>
                      </div>
                   @enderror
@@ -60,26 +64,26 @@
                      <input
                         type="text"
                         inputmode="numeric"
-                        name="materials[{{ $i }}][drops]"
+                        name="materials[{{ $index }}][drops]"
                         placeholder="number of drops"
                         class="w-full p-2"
                         value="{{ $row['drops'] ?? '' }}"
                      />
 
                      {{-- DILUTION --}}
-                     <select name="materials[{{ $i }}][dilution]" class="w-full p-2">
-                        @foreach ([25, 10, 1] as $d)
+                     <select name="materials[{{ $index }}][dilution]" class="w-full p-2">
+                        @foreach ([25, 10, 1] as $dilution)
                            <option
-                              value="{{ $d }}"
-                              @selected((int) ($row['dilution'] ?? 25) === $d)
+                              value="{{ $dilution }}"
+                              @selected((int) ($row['dilution'] ?? 25) === $dilution)
                            >
-                              {{ $d }}
+                              {{ $dilution }}
                            </option>
                         @endforeach
                      </select>
                   </div>
-                  @error("materials.$i.drops")
-                     <div data-testid="error-materials.{{ $i }}.drops">
+                  @error("materials.$index.drops")
+                     <div data-testid="error-materials.{{ $index }}.drops">
                         <x-flash type="error">{{ $message }}</x-flash>
                      </div>
                   @enderror

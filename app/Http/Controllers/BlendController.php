@@ -136,4 +136,20 @@ class BlendController extends Controller
             ->route('dashboard')
             ->with('ok', 'Blend deleted.');
     }
+
+    public function edit(Blend $blend)
+    {
+        abort_unless($blend->user_id === auth()->id(), 404);
+
+        $version = $blend->versions()
+            ->where('version', '1.0')
+            ->with(['ingredients.material'])
+            ->firstOrFail();
+
+        $materials = Material::where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
+
+        return view('blends.edit', compact('blend', 'version', 'materials'));
+    }
 }

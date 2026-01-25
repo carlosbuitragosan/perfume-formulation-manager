@@ -266,3 +266,38 @@ test('user can delete a blend', function () {
         'id' => $blend->id,
     ]);
 });
+
+test('user can view the edit form for a blend and it is prefilled', function () {
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+    $blend = Blend::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Moonshine',
+    ]);
+    $editUrl = route('blends.edit', $blend);
+    $version1 = $blend->versions()->create(['version' => '1.0']);
+    $version1->ingredients()->create([
+        'material_id' => $lavender->id,
+        'drops' => 2,
+        'dilution' => 25,
+    ]);
+    $version1->ingredients()->create([
+        'material_id' => $neroli->id,
+        'drops' => 5,
+        'dilution' => 25,
+    ]);
+
+    [, $crawler] = getPageCrawler($this->user, $editUrl);
+
+    expect($crawler->filter('input[name="name"]')->attr('value'))->toBe('Moonshine');
+
+    $rows = $crawler->filter('[data-testid="ingredient-row"]');
+    expect($rows->count())->toBe(2);
+
+    $lavRow = $crawler->filter('select[name*="[material_id]"] option[selected][value="'.$lavender->id.'"]');
+    expect($lavRow->count())->toBe(1);
+
+    expect($crawler->filter('input[name*="[drops]"][value="2"]')->count())->toBeGreaterThanOrEqual(1);
+    expect($crawler->filter('input[name*="[drops]"][value="5"]')->count())->toBeGreaterThanOrEqual(1);
+    expect($crawler->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBeGreaterThanOrEqual(1);
+});
