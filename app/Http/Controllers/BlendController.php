@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blend;
+use App\Models\Bottle;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -21,11 +22,15 @@ class BlendController extends Controller
 
     public function store(Request $request)
     {
+        dump($request->input('materials'));
+
         $materials = collect($request->input('materials', []))
             ->filter(function ($row) {
                 $row = is_array($row) ? $row : [];
                 $hasMaterial = ! empty($row['material_id']);
                 $hasDrops = isset($row['drops']) && $row['drops'] !== '';
+
+                dump($row);
 
                 return $hasMaterial || $hasDrops;
             })
@@ -83,8 +88,23 @@ class BlendController extends Controller
         ]);
 
         foreach ($data['materials'] as $row) {
+            $activeBottles = Bottle::where('user_id', auth()->id())
+                ->where('material_id', $row['material_id'])
+                ->where('is_active', 1)
+                ->get();
+
+            $bottleId = null;
+
+            dump($row['material_id'], $activeBottles->count());
+            // dump($activeBottles->count());
+
+            if ($activeBottles->count() === 1) {
+                $bottleId = $activeBottles->first()->id;
+            }
+
             $version->ingredients()->create([
                 'material_id' => $row['material_id'],
+                'bottle_id' => $bottleId,
                 'drops' => $row['drops'],
                 'dilution' => $row['dilution'],
             ]);

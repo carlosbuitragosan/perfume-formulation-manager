@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Blend;
+use App\Models\Bottle;
 use App\Models\User;
 
 // Create user
@@ -370,5 +371,52 @@ test('user can update a blend from the edit form', function () {
         'material_id' => $lavender->id,
         'drops' => 2,
         'dilution' => 25,
+    ]);
+});
+
+test('blend version ingredients table has bottle_id column', function () {
+    expect(Schema::hasColumn('blend_version_ingredients', 'bottle_id'))->toBeTrue();
+});
+
+test('when creating a blend it auto-assigns the single active bottle', function () {
+    $postUrl = route('blends.store');
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+
+    Bottle::query()->delete();
+    $bottle = Bottle::factory()->create([
+        'user_id' => $this->user->id,
+        'material_id' => $lavender->id,
+        'is_active' => 1,
+    ]);
+
+    $payload = [
+        'name' => 'blendWithBottleId',
+        'materials' => [
+            [
+                'material_id' => $lavender->id,
+                'drops' => 4,
+                'dilution' => 25,
+            ],
+            [
+                'material_id' => $neroli->id,
+                'drops' => 3,
+                'dilution' => 25,
+            ],
+        ],
+    ];
+
+    $response = postAs($this->user, $postUrl, $payload)
+        ->assertRedirect();
+
+    $blend = Blend::where('user_id', $this->user->id)
+        ->where('name', 'blendWithBottleId')
+        ->firstOrFail();
+    $version = $blend->versions()->first();
+
+    $this->assertDatabaseHas('blend_version_ingredients', [
+        'blend_version_id' => $version->id,
+        'material_id' => $lavender->id,
+        'bottle_id' => $bottle->id,
     ]);
 });

@@ -12,6 +12,7 @@ class BlendVersionIngredient extends Model
     protected $fillable = [
         'blend_version_id',
         'material_id',
+        'bottle_id',
         'drops',
         'dilution',
     ];
@@ -24,5 +25,10 @@ class BlendVersionIngredient extends Model
     public function material()
     {
         return $this->belongsTo(Material::class);
+    }
+
+    public function bottle()
+    {
+        return $this->belongsTo(Bottle::class);
     }
 }
