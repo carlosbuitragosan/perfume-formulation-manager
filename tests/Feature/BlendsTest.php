@@ -383,7 +383,6 @@ test('when creating a blend it auto-assigns the single active bottle', function 
     $lavender = makeMaterial();
     $neroli = makeMaterial(['name' => 'Neroli']);
 
-    Bottle::query()->delete();
     $bottle = Bottle::factory()->create([
         'user_id' => $this->user->id,
         'material_id' => $lavender->id,

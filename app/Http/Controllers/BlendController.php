@@ -22,23 +22,25 @@ class BlendController extends Controller
 
     public function store(Request $request)
     {
-        dump($request->input('materials'));
-
+        // clean up incoming materials array:
+        // remove empty rows
+        // reindex - values()
+        // convert to plain PHP array - all()
         $materials = collect($request->input('materials', []))
             ->filter(function ($row) {
                 $row = is_array($row) ? $row : [];
                 $hasMaterial = ! empty($row['material_id']);
                 $hasDrops = isset($row['drops']) && $row['drops'] !== '';
 
-                dump($row);
-
                 return $hasMaterial || $hasDrops;
             })
             ->values()
             ->all();
 
+        // Replace original request materials with cleaned version
         $request->merge(['materials' => $materials]);
 
+        // validate
         $validator = Validator::make(
             $request->all(),
             [
@@ -53,6 +55,7 @@ class BlendController extends Controller
                 'materials.*.drops' => ['required', 'integer', 'min:1', 'max:999'],
                 'materials.*.dilution' => ['required', 'integer', 'in:25,10,1'],
             ],
+            // custom error messages
             [
                 'name.required' => 'Enter a blend name',
                 'materials.required' => 'Add at least two ingredients',
@@ -64,30 +67,36 @@ class BlendController extends Controller
             ]
         );
 
+        // extra validation to prevent duplicate materials
         $validator->after(function ($validator) use ($request) {
             $materials = $request->input('materials', []);
 
             $ids = collect($materials)
                 ->pluck('material_id')
-                ->filter();
+                ->filter(); // remove nulls
 
             if ($ids->count() !== $ids->unique()->count()) {
                 $validator->errors()->add('materials', 'You can\'t use the same material twice.');
             }
         });
 
+        // run the validator
         $data = $validator->validate();
 
+        // Create blend
         $blend = Blend::create([
             'user_id' => auth()->id(),
             'name' => trim($data['name']),
         ]);
 
+        // Create first version
         $version = $blend->versions()->create([
             'version' => '1.0',
         ]);
 
+        // Create ingredients for this version
         foreach ($data['materials'] as $row) {
+            // Find active bottles for each material
             $activeBottles = Bottle::where('user_id', auth()->id())
                 ->where('material_id', $row['material_id'])
                 ->where('is_active', 1)
@@ -95,9 +104,7 @@ class BlendController extends Controller
 
             $bottleId = null;
 
-            dump($row['material_id'], $activeBottles->count());
-            // dump($activeBottles->count());
-
+            // Assign bottle if only one exists
             if ($activeBottles->count() === 1) {
                 $bottleId = $activeBottles->first()->id;
             }
