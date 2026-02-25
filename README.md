@@ -1,3 +1,4 @@
+![Deploy Status](https://github.com/carlosbuitragosan/perfume-formulation-manager/actions/workflows/deploy.yml/badge.svg)
 # Perfume Formulation Manager
 
 A full-stack Laravel application for managing perfumery materials, inventory batches, and blend formulations.
