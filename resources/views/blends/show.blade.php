@@ -35,7 +35,18 @@
                         data-testid="blend-ingredient-row"
                         data-material-id="{{ $row['material_id'] }}"
                      >
-                        <td data-col="material" class="py-2">{{ $row['material_name'] }}</td>
+                        @if ($row['bottle_id'])
+                           <td data-col="material" class="py-2">
+                              <a
+                                 href="{{ route('materials.show', $row['material_id']) }}"
+                                 class="underline"
+                              >
+                                 {{ $row['material_name'] }}
+                              </a>
+                           </td>
+                        @else
+                           <td data-col="material" class="py-2">{{ $row['material_name'] }}</td>
+                        @endif
                         <td data-col="drops" class="py-2">{{ $row['drops'] }}</td>
                         <td data-col="dilution" class="py-2">{{ $row['dilution'] }}</td>
                         <td data-col="pure_pct" class="py-2">{{ $row['pure_pct'] }}</td>

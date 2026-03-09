@@ -419,3 +419,47 @@ test('when creating a blend it auto-assigns the single active bottle', function 
         'bottle_id' => $bottle->id,
     ]);
 });
+
+test('blend show page displays bottle used for each ingredient', function () {
+    // create materials
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+
+    // create bottle
+    $lavenderBottle = Bottle::factory()->create([
+        'user_id' => $this->user->id,
+        'material_id' => $lavender->id,
+        'is_active' => 1,
+    ]);
+
+    // create blend + version + ingredients with bottle_id
+    $blend = Blend::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Forest',
+    ]);
+
+    $version = $blend->versions()->create([
+        'version' => '1.0',
+    ]);
+
+    $version->ingredients()->create([
+        'material_id' => $lavender->id,
+        'bottle_id' => $lavenderBottle->id,
+        'drops' => 4,
+        'dilution' => 25,
+    ]);
+
+    $version->ingredients()->create([
+        'material_id' => $neroli->id,
+        'drops' => 4,
+        'dilution' => 25,
+    ]);
+
+    $blendUrl = route('blends.show', $blend);
+    $bottleUrl = route('materials.show', $lavender);
+    // visit show page
+    [, $crawler] = getPageCrawler($this->user, $blendUrl);
+
+    // assert bottle
+    expect($crawler->filter('a[href="'.$bottleUrl.'"]'))->toHaveCount(1);
+});

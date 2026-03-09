@@ -143,6 +143,7 @@ class BlendController extends Controller
                 return [
                     'material_id' => $ing->material_id,
                     'material_name' => $ing->material->name,
+                    'bottle_id' => $ing->bottle_id,
                     'drops' => (string) $ing->drops,
                     'dilution' => $ing->dilution.'%',
                     'pure_pct' => number_format($pct, 2).'%',
