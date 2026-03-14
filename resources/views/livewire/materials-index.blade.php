@@ -47,7 +47,7 @@
             @keydown.enter.prevent="window.location='{{ route('materials.show', $m) }}'"
             @keydown.space.prevent="window.location='{{ route('materials.show', $m) }}'"
             tabindex="0"
-            class="card relative card-hover card-focus px-3 py-3 cursor-pointer"
+            class="card card-hover card-focus relative px-3 py-3 cursor-pointer"
          >
             {{-- view icon --}}
             <svg
