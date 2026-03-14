@@ -15,6 +15,7 @@
       "livewire/livewire": "^3.6"
    },
    "require-dev": {
+      "barryvdh/laravel-ide-helper": "^3.6",
       "doctrine/dbal": "^4.3",
       "fakerphp/faker": "^1.23",
       "laravel/breeze": "^2.3",

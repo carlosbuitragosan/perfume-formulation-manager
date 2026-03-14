@@ -22,7 +22,8 @@ class BlendController extends Controller
 
     public function store(Request $request)
     {
-        // clean up incoming materials array:
+        // clean up incoming
+        // materials array:
         // remove empty rows
         // reindex - values()
         // convert to plain PHP array - all()
