@@ -185,7 +185,7 @@ class BlendController extends Controller
     public function update(Request $request, Blend $blend)
     {
         abort_unless($blend->user_id === auth()->id(), 404);
-
+        // dd($request->input('materials'));
         $materials = collect($request->input('materials', []))
             ->filter(function ($row) {
                 $row = is_array($row) ? $row : [];
@@ -238,19 +238,51 @@ class BlendController extends Controller
 
         $data = $validator->validate();
 
+        // Get blend version
         $version = $blend->versions()
             ->where('version', '1.0')
             ->firstOrFail();
 
+        // Update blend name
         $blend->update([
             'name' => trim($data['name']),
         ]);
 
+        // Preserve bottle assignments (materialId => bottleId)
+        $existingBottles = $version->ingredients
+            ->pluck('bottle_id', 'material_id');
+
+        // Delete ingredients
         $version->ingredients()->delete();
 
+        // Get the existing materials
+        $existingMaterials = collect($data['materials'])
+            ->pluck('material_id');
+
+        // Find all active bottles and group them by material
+        $activeBottles = Bottle::where('user_id', auth()->id())
+            ->where('is_active', 1)
+            ->WhereIn('material_id', $existingMaterials)
+            ->get()
+            ->groupBy('material_id');
+
         foreach ($data['materials'] as $row) {
+            $materialId = $row['material_id'];
+            $bottleId = null;
+
+            // Find active bottles for each material
+            if ($existingBottles->has($materialId)) {
+                $bottleId = $existingBottles[$materialId];
+            } else {
+                $activeBottlesForMaterial = $activeBottles->get($materialId, collect());
+                if ($activeBottlesForMaterial->count() === 1) {
+                    $bottleId = $activeBottlesForMaterial->first()->id;
+                }
+            }
+
             $version->ingredients()->create([
-                'material_id' => $row['material_id'],
+                'material_id' => $materialId,
+                'bottle_id' => $bottleId,
                 'drops' => $row['drops'],
                 'dilution' => $row['dilution'],
             ]);

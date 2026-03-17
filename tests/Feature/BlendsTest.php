@@ -227,9 +227,6 @@ test('user can update a blend from the edit form', function () {
     addIngredient($version, $lavender, 2, 25);
     addIngredient($version, $neroli, 5, 25);
 
-    $editUrl = route('blends.edit', $blend);
-    $updateUrl = route('blends.update', $blend);
-
     $payload = blendPayload('Moonshine-2', [
         ingredient($lavender, [
             'drops' => 10,
@@ -241,8 +238,8 @@ test('user can update a blend from the edit form', function () {
     ]);
 
     // Update blend. Simulates user submiting request FROM the edit page
-    $this->from($editUrl)
-        ->put($updateUrl, $payload)
+    $this->from(route('blends.edit', $blend))
+        ->put(route('blends.update', $blend), $payload)
         ->assertRedirect(route('blends.show', $blend));
 
     // Assert changes
@@ -278,7 +275,6 @@ test('blend version ingredients table has bottle_id column', function () {
 });
 
 test('when creating a blend it auto-assigns the single active bottle', function () {
-    $postUrl = route('blends.store');
     $lavender = makeMaterial();
     $neroli = makeMaterial(['name' => 'Neroli']);
     $lavenderBottle = makeBottle($lavender);
@@ -287,7 +283,7 @@ test('when creating a blend it auto-assigns the single active bottle', function 
         ingredient($neroli),
     ]);
 
-    $response = postAs($this->user, $postUrl, $payload)
+    $response = postAs($this->user, route('blends.store'), $payload)
         ->assertRedirect();
 
     $blendId = basename($response->headers->get('Location'));
@@ -301,6 +297,32 @@ test('when creating a blend it auto-assigns the single active bottle', function 
         'bottle_id' => $lavenderBottle->id,
     ]);
 });
+
+test('Editing a blend does not change bottle assignments of existing ingredients', function () {
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+    $lavenderBottle = makeBottle($lavender);
+    $payload = blendPayload('blendWithBottleId', [
+        ingredient($lavender),
+        ingredient($neroli),
+    ]);
+    $response = postAs($this->user, route('blends.store'), $payload);
+
+    $blendId = basename($response->headers->get('Location'));
+    $blend = Blend::findOrFail($blendId);
+    $version = $blend->versions()->first();
+
+    $this->from(route('blends.edit', $blend))
+        ->put(route('blends.update', $blend), ['name' => 'Spice V2']);
+
+    $this->assertDatabaseHas('blend_version_ingredients', [
+        'blend_version_id' => $version->id,
+        'material_id' => $lavender->id,
+        'bottle_id' => $lavenderBottle->id,
+    ]);
+});
+
+test('Editing a blend auto-assings a bottle to newly added ingredients in 1 active bottle exists', function () {});
 
 test('blend show page has a link for a bottle used for each ingredient that has a bottle assigned to it', function () {
     // create materials
