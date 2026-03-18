@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ExtractionMethod;
+use App\Models\BlendVersionIngredient;
 use App\Models\Bottle;
 use App\Models\Material;
 use Illuminate\Http\Request;
@@ -151,6 +152,15 @@ class BottleController extends Controller
         abort_if($bottle->user_id !== auth()->id(), 404);
 
         $material = $bottle->material;
+
+        // Check if bottle is used in any blend ingredient
+        $bottlesInUse = BlendVersionIngredient::where('bottle_id', $bottle->id)->exists();
+
+        if ($bottlesInUse) {
+            return redirect()
+                ->route('materials.show', $material)
+                ->with('error', 'This bottle is in use and cannot be deleted.');
+        }
 
         // delete physical files:
         foreach ($bottle->files as $file) {

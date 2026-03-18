@@ -23,6 +23,7 @@
          @forelse ($material->bottles as $bottle)
             @php
                $enum = ExtractionMethod::tryFrom((string) $bottle->method);
+               $bottleInUse = $usedBottleIds->contains($bottle->id);
             @endphp
 
             <div class="card relative border p-4 text-sm space-y-1" id="bottle-{{ $bottle->id }}">
@@ -151,8 +152,23 @@
 
                {{-- Actions dropdown --}}
                <div class="absolute top-2 right-2">
-                  @include('bottles.partials.actions-dropdown', ['bottle' => $bottle])
+                  @include(
+                     'bottles.partials.actions-dropdown',
+                     [
+                        'bottle' => $bottle,
+                        'bottleInUse' => $bottleInUse,
+                     ]
+                  )
                </div>
+
+               {{-- Error message --}}
+               @if (session('error'))
+                  <div class="mb-4">
+                     <x-flash type="error">
+                        {{ session('error') }}
+                     </x-flash>
+                  </div>
+               @endif
             </div>
          @empty
             <div class="card p-4">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlendVersionIngredient;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -124,8 +125,11 @@ class MaterialController extends Controller
     public function show(Material $material)
     {
         $material->load(['bottles.files']);
+        $usedBottleIds = BlendVersionIngredient::pluck('bottle_id')
+            ->filter()
+            ->unique();
 
-        return view('materials.show', compact('material'));
+        return view('materials.show', compact('material', 'usedBottleIds'));
     }
 
     public function destroy(Material $material)

@@ -238,31 +238,31 @@ class BlendController extends Controller
 
         $data = $validator->validate();
 
-        // Get blend version
-        $version = $blend->versions()
-            ->where('version', '1.0')
-            ->firstOrFail();
-
         // Update blend name
         $blend->update([
             'name' => trim($data['name']),
         ]);
 
-        // Preserve bottle assignments (materialId => bottleId)
-        $existingBottles = $version->ingredients
+        // Get blend version
+        $version = $blend->versions()
+            ->where('version', '1.0')
+            ->firstOrFail();
+
+        // Preserve bottle assignments (materialId => bottleId) from DB
+        $existingBottleIds = $version->ingredients
             ->pluck('bottle_id', 'material_id');
 
         // Delete ingredients
         $version->ingredients()->delete();
 
-        // Get the existing materials
-        $existingMaterials = collect($data['materials'])
+        // Get the materials from the request
+        $requestMaterialIds = collect($data['materials'])
             ->pluck('material_id');
 
-        // Find all active bottles and group them by material
+        // Find all active bottles for all materials in the request (materialId => collection of bottles)
         $activeBottles = Bottle::where('user_id', auth()->id())
             ->where('is_active', 1)
-            ->WhereIn('material_id', $existingMaterials)
+            ->WhereIn('material_id', $requestMaterialIds)
             ->get()
             ->groupBy('material_id');
 
@@ -270,16 +270,19 @@ class BlendController extends Controller
             $materialId = $row['material_id'];
             $bottleId = null;
 
-            // Find active bottles for each material
-            if ($existingBottles->has($materialId)) {
-                $bottleId = $existingBottles[$materialId];
+            // If ingredient being added already existed in the blend...
+            if ($existingBottleIds->has($materialId)) {
+                // ... fetch it from the list and assign a bottle id
+                $bottleId = $existingBottleIds[$materialId];
             } else {
+                // Fetch active bottles from newly added ingredient
                 $activeBottlesForMaterial = $activeBottles->get($materialId, collect());
                 if ($activeBottlesForMaterial->count() === 1) {
+                    // Assign the bottle ID
                     $bottleId = $activeBottlesForMaterial->first()->id;
                 }
             }
-
+            // Create a new ingredient from existing ones and newly added
             $version->ingredients()->create([
                 'material_id' => $materialId,
                 'bottle_id' => $bottleId,
