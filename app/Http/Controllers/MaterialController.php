@@ -125,6 +125,8 @@ class MaterialController extends Controller
     public function show(Material $material)
     {
         $material->load(['bottles.files']);
+
+        // Find all bottle ids (unique) that are used in any blend
         $usedBottleIds = BlendVersionIngredient::pluck('bottle_id')
             ->filter()
             ->unique();

@@ -108,7 +108,7 @@ describe('Bottle display', function () {
         expect($bottleDiv->text())->toContain('0.912');
         expect($bottleDiv->text())->toContain('4.99');
         expect($bottleDiv->text())->toContain('test notes');
-        expect($bottleDiv->text())->toContain('In use');
+        expect($bottleDiv->text())->toContain('Active');
     });
 
     it('shows newest bottles first on the material show page', function () {
@@ -173,23 +173,51 @@ describe('Bottle display', function () {
     });
 
     it('marks a bottle as finished from the material show page', function () {
+        $showUrl = route('materials.show', $this->material);
         $bottle = makeBottle($this->material, [
             'supplier_name' => 'test supplier',
             'method' => 'steam_distilled',
         ]);
-        $finishUrl = route('bottles.finish', $bottle);
-        $showUrl = route('materials.show', $this->material);
 
-        $finishResponse = postAs($this->user, $finishUrl);
-        $finishResponse->assertRedirect(route('materials.show', $this->material));
+        // Mark bottle as finished
+        postAs($this->user, route('bottles.finish', $bottle))
+            ->assertRedirect($showUrl);
 
+        // Refresh model
         $bottle->refresh();
-        expect($bottle->is_active)->toBeFalse();
 
+        // Get bottle show html
         [, $crawler] = getPageCrawler($this->user, $showUrl);
-        $bottleDiv = $crawler->filter("div#bottle-{$bottle->id}");
-        expect($bottleDiv->text())->toContain('Finished');
-        expect($bottleDiv->text())->not->toContain('In use');
+        $text = $crawler->filter("div#bottle-{$bottle->id}")->text();
+
+        expect($bottle->is_active)->toBeFalse();
+        expect($text)->toContain('Finished');
+        expect($text)->not->toContain('In use');
+    });
+
+    it('shows "Active" flag for new bottle', function () {
+        $bottle = makeBottle($this->material);
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material));
+
+        $text = $crawler->filter("div#bottle-{$bottle->id}")->text();
+        expect($text)->toContain('Active');
+    });
+
+    it('does not show "Active" flag when bottle is in use', function () {
+        // Create a bottle
+        $bottle = makeBottle($this->material);
+
+        // Create a blend
+        [$blend, $version] = makeBlendWithVersion($this->user);
+        addIngredient($version, $this->material, $bottle->id);
+
+        // Get bottle show page
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material));
+
+        // extract bottle text
+        $text = $crawler->filter("div#bottle-{$bottle->id}")->text();
+
+        expect($text)->toContain('In Use');
     });
 });
 

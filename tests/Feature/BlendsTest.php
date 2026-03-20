@@ -141,7 +141,7 @@ describe('Blend Display & Breakdown', function () {
         $neroli = makeMaterial(['name' => 'Neroli']);
         $lavenderBottle = makeBottle($lavender);
         [$blend, $version] = makeBlendWithVersion($this->user, 'Forest');
-        addIngredient($version, $lavender, 4, 25, $lavenderBottle->id);
+        addIngredient($version, $lavender, $lavenderBottle->id, 4, 25);
         addIngredient($version, $neroli);
         $blendUrl = route('blends.show', $blend);
         $lavenderbottleUrl = route('materials.show', $lavender);
@@ -187,8 +187,8 @@ describe('Blend Editing', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
         [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
-        addIngredient($version, $lavender, 2);
-        addIngredient($version, $neroli, 5);
+        addIngredient($version, $lavender, null, 2);
+        addIngredient($version, $neroli, null, 5);
         [, $crawler] = getPageCrawler($this->user, route('blends.edit', $blend));
         expect($crawler->filter('input[name="name"]')->attr('value'))->toBe('Moonshine');
         $rows = $crawler->filter('[data-testid="ingredient-row"]');
@@ -210,8 +210,8 @@ describe('Blend Editing', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
         [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
-        addIngredient($version, $lavender, 2, 25);
-        addIngredient($version, $neroli, 5, 25);
+        addIngredient($version, $lavender, null, 2, 25);
+        addIngredient($version, $neroli, null, 5, 25);
         $payload = blendPayload('Moonshine-2', [
             ingredient($lavender, [
                 'drops' => 10,

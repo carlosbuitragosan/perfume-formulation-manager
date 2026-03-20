@@ -23,16 +23,23 @@
          @forelse ($material->bottles as $bottle)
             @php
                $enum = ExtractionMethod::tryFrom((string) $bottle->method);
+               // return true if the bottle is in this list
                $bottleInUse = $usedBottleIds->contains($bottle->id);
             @endphp
 
             <div class="card relative border p-4 text-sm space-y-1" id="bottle-{{ $bottle->id }}">
                <div class="flex items-center gap-2 mb-1">
-                  @if ($bottle->is_active)
+                  @if ($bottleInUse)
                      <span
                         class="text-sm px-2 py-0.5 rounded font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100"
                      >
-                        In use
+                        In Use
+                     </span>
+                  @elseif ($bottle->is_active)
+                     <span
+                        class="text-sm px-2 py-0.5 rounded font-medium bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                     >
+                        Active
                      </span>
                   @else
                      <span

@@ -37,6 +37,7 @@
          method="POST"
          action="{{ route("bottles.destroy", $bottle) }}"
          class="bottle-delete-form"
+         {{-- show confirmation only if bottle is not in use --}}
          @unless ($bottleInUse)
              onsubmit="return confirm('Are you sure you want to delete this bottle?')"
          @endunless
