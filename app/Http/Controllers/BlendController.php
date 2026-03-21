@@ -98,16 +98,16 @@ class BlendController extends Controller
         // Create ingredients for this version
         foreach ($data['materials'] as $row) {
             // Find active bottles for each material
-            $activeBottles = Bottle::where('user_id', auth()->id())
+            $availableBottlesByMaterial = Bottle::where('user_id', auth()->id())
                 ->where('material_id', $row['material_id'])
-                ->where('is_active', 1)
+                ->where('is_finished', 0)
                 ->get();
 
             $bottleId = null;
 
             // Assign bottle if only one exists
-            if ($activeBottles->count() === 1) {
-                $bottleId = $activeBottles->first()->id;
+            if ($availableBottlesByMaterial->count() === 1) {
+                $bottleId = $availableBottlesByMaterial->first()->id;
             }
 
             $version->ingredients()->create([
@@ -256,13 +256,13 @@ class BlendController extends Controller
         $version->ingredients()->delete();
 
         // Get the materials from the request
-        $requestMaterialIds = collect($data['materials'])
+        $incomingMaterialIds = collect($data['materials'])
             ->pluck('material_id');
 
-        // Find all active bottles for all materials in the request (materialId => collection of bottles)
-        $activeBottles = Bottle::where('user_id', auth()->id())
-            ->where('is_active', 1)
-            ->WhereIn('material_id', $requestMaterialIds)
+        // Find all available bottles for all materials in the request (materialId => collection of bottles)
+        $availableBottlesByMaterial = Bottle::where('user_id', auth()->id())
+            ->where('is_finished', 0)
+            ->WhereIn('material_id', $incomingMaterialIds)
             ->get()
             ->groupBy('material_id');
 
@@ -276,10 +276,10 @@ class BlendController extends Controller
                 $bottleId = $existingBottleIds[$materialId];
             } else {
                 // Fetch active bottles from newly added ingredient
-                $activeBottlesForMaterial = $activeBottles->get($materialId, collect());
-                if ($activeBottlesForMaterial->count() === 1) {
+                $materialBottles = $availableBottlesByMaterial->get($materialId, collect());
+                if ($materialBottles->count() === 1) {
                     // Assign the bottle ID
-                    $bottleId = $activeBottlesForMaterial->first()->id;
+                    $bottleId = $materialBottles->first()->id;
                 }
             }
             // Create a new ingredient from existing ones and newly added

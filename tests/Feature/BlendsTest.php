@@ -376,20 +376,13 @@ describe('Bottle & Material Constraints', function () {
         // Create bottle
         $lavenderBottle = makeBottle($lavender);
 
-        // Post Blend
-        $response = postAs($this->user, route('blends.store'), blendPayload('Sun', [
-            ingredient($lavender),
-            ingredient($benzoin),
-        ]));
-
-        // Get new blend info
-        $blendId = basename($response->headers->get('Location'));
-        $blend = Blend::findOrFail($blendId);
-        $version = $blend->versions()->first();
+        // Create Blend
+        [$blend, $version] = makeBlendWithVersion($this->user);
+        addIngredient($version, $lavender, $lavenderBottle->id);
 
         // Delete bottle
-        $this->from(route('materials.show', $lavenderBottle->material->id))
-            ->delete(route('bottles.destroy', $lavenderBottle));
+        $this->from(route('materials.show', $lavender->id))
+            ->delete(route('bottles.destroy', $lavenderBottle->id));
 
         // Assert bottle has not bee deleted
         $this->assertDatabaseHas('bottles', [

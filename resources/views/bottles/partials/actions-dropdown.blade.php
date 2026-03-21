@@ -11,7 +11,7 @@
    <x-slot name="content">
       <x-dropdown-link :href="route('bottles.edit', $bottle)">Edit</x-dropdown-link>
 
-      @if ($bottle->is_active)
+      @if (! $bottle->is_finished)
          <form method="POST" action="{{ route("bottles.finish", $bottle) }}">
             @csrf
             <button
@@ -22,13 +22,17 @@
             </button>
          </form>
       @else
-         <form method="POST" action="{{ route("bottles.reactivate", $bottle) }}">
+         <form
+            method="POST"
+            action="{{ route("bottles.unfinish", $bottle) }}"
+            class="bottle-unfinish-form"
+         >
             @csrf
             <button
                type="submit"
                class="block w-full px-4 py-2 text-left text-sm leading-5 text-slate-900 hover:bg-gray-100 hover:text-slate-900 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white focus:outline-none"
             >
-               Reactivate
+               Unmark finished
             </button>
          </form>
       @endif

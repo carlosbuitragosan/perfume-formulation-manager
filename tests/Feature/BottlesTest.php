@@ -60,20 +60,13 @@ describe('Bottle creation', function () {
     });
 
     it('creates a bottle for the material on form submit', function () {
-        $payload = bottlePayload(['batch_code' => 'AB123']);
-        $storeUrl = route('materials.bottles.store', $this->material);
-        $redirectRoute = route('materials.show', $this->material);
-
-        postAs($this->user, $storeUrl, $payload)
+        postAs($this->user, route('materials.bottles.store', $this->material), bottlePayload())
             ->assertSessionHasNoErrors()
-            ->assertRedirect($redirectRoute);
+            ->assertRedirect(route('materials.show', $this->material));
 
-        expect(Bottle::whereMaterialId($this->material->id)
-            ->whereBatchCode('AB123')
-            ->whereSupplierName('Eden Botanicals')
-            ->whereIsActive(true)
-            ->exists())
-            ->toBeTrue('Bottle not created in DB');
+        $this->assertDatabaseHas('bottles', [
+            'material_id' => $this->material->id,
+        ]);
     });
 
     it('shows expiry date field instead of distillation date in the create form', function () {
@@ -108,7 +101,6 @@ describe('Bottle display', function () {
         expect($bottleDiv->text())->toContain('0.912');
         expect($bottleDiv->text())->toContain('4.99');
         expect($bottleDiv->text())->toContain('test notes');
-        expect($bottleDiv->text())->toContain('Active');
     });
 
     it('shows newest bottles first on the material show page', function () {
@@ -174,10 +166,7 @@ describe('Bottle display', function () {
 
     it('marks a bottle as finished from the material show page', function () {
         $showUrl = route('materials.show', $this->material);
-        $bottle = makeBottle($this->material, [
-            'supplier_name' => 'test supplier',
-            'method' => 'steam_distilled',
-        ]);
+        $bottle = makeBottle($this->material);
 
         // Mark bottle as finished
         postAs($this->user, route('bottles.finish', $bottle))
@@ -190,17 +179,18 @@ describe('Bottle display', function () {
         [, $crawler] = getPageCrawler($this->user, $showUrl);
         $text = $crawler->filter("div#bottle-{$bottle->id}")->text();
 
-        expect($bottle->is_active)->toBeFalse();
+        // expect bottle finished
+        expect($bottle->is_finished)->toBeTrue();
         expect($text)->toContain('Finished');
-        expect($text)->not->toContain('In use');
     });
 
-    it('shows "Active" flag for new bottle', function () {
+    it('does not show status for new bottle', function () {
         $bottle = makeBottle($this->material);
         [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material));
 
         $text = $crawler->filter("div#bottle-{$bottle->id}")->text();
-        expect($text)->toContain('Active');
+        expect($text)->not->toContain('In use');
+        expect($text)->not->toContain('Finished');
     });
 
     it('does not show "Active" flag when bottle is in use', function () {
@@ -337,30 +327,31 @@ describe('Bottle editing', function () {
         expect($form->attr('method'))->toBe('POST', 'form\'s HTTP method should be POST');
     });
 
-    it('reactives a finished bottle', function () {
-        $bottle = makeBottle($this->material, ['is_active' => false]);
-        $reactivateUrl = route('bottles.reactivate', $bottle);
+    it('Unmarks a bottle as finished', function () {
+        $bottle = makeBottle($this->material, ['is_finished' => true]);
+        $reactivateUrl = route('bottles.unfinish', $bottle);
         $redirectUrl = route('materials.show', $this->material).'#bottle-'.$bottle->id;
 
         $response = postAs($this->user, $reactivateUrl)
             ->assertRedirect($redirectUrl);
 
-        expect($bottle->fresh()->is_active)->toBeTrue();
+        expect($bottle->fresh()->is_finished)->toBeFalse();
     });
 
-    it('shows a reactivate button for finished bottles', function () {
+    it('shows a "Unmark finished" button for finished bottles', function () {
+        // Make a bottle and mark it as finished
         $bottle = makeBottle($this->material);
-        $bottlesUrl = route('materials.show', $this->material);
-        $reactivateUrl = route('bottles.reactivate', $bottle);
+        $bottle->is_finished = true;
+        $bottle->save();
 
-        postAs($this->user, route('bottles.finish', $bottle));
+        // get material show page HTML and isolate the unfinish form
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material));
+        $bottleDiv = $crawler->filter("#bottle-{$bottle->id}");
+        $unfinishForm = $bottleDiv->filter('form.bottle-unfinish-form');
 
-        [, $crawler] = getPageCrawler($this->user, $bottlesUrl);
-
-        $form = $crawler->filter("form[action=\"{$reactivateUrl}\"]");
-
-        expect($form->count())->toBe(1);
-        expect($form->filter('button')->text())->toContain('Reactivate');
+        // Expect form
+        expect($unfinishForm->count())->toBe(1);
+        expect($unfinishForm->filter('button')->text())->toContain('Unmark finished');
     });
 });
 

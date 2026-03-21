@@ -26,7 +26,7 @@ class Bottle extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_finished' => 'boolean',
     ];
 
     public function material()

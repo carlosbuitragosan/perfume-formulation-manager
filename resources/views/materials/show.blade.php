@@ -35,13 +35,9 @@
                      >
                         In Use
                      </span>
-                  @elseif ($bottle->is_active)
-                     <span
-                        class="text-sm px-2 py-0.5 rounded font-medium bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
-                     >
-                        Active
-                     </span>
-                  @else
+                  @endif
+
+                  @if ($bottle->is_finished)
                      <span
                         class="text-sm px-2 py-0.5 rounded font-medium bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
                      >

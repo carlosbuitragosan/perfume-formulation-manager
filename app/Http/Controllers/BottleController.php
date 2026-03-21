@@ -140,7 +140,7 @@ class BottleController extends Controller
     {
         abort_if($bottle->user_id !== auth()->id(), 404);
 
-        $bottle->is_active = false;
+        $bottle->is_finished = true;
         $bottle->save();
 
         return redirect()->route('materials.show', $bottle->material_id)
@@ -179,14 +179,12 @@ class BottleController extends Controller
 
     }
 
-    public function reactivate(Bottle $bottle)
+    public function unfinish(Bottle $bottle)
     {
-        if (! $bottle->is_active) {
-            $bottle->is_active = true;
-            $bottle->save();
-        }
+        $bottle->is_finished = false;
+        $bottle->save();
 
         return redirect(route('materials.show', $bottle->material).'#bottle-'.$bottle->id)
-            ->with('ok', 'Bottle reactivated');
+            ->with('ok', 'Bottle updated');
     }
 }
