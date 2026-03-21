@@ -90,7 +90,7 @@ describe('Blend Creation (Form & Submission)', function () {
         $response = postAs($this->user, route('blends.store'), $payload)
             ->assertSessionHasErrors(['materials']);
         $this->assertDatabaseCount('blends', 0);
-        $this->assertDatabaseCount('blend_version_ingredients', 0);
+        $this->assertDatabaseCount('blend_ingredients', 0);
     });
     test('create blend shows inline validation error per field', function () {
         $lavender = makeMaterial();
@@ -228,19 +228,19 @@ describe('Blend Editing', function () {
             'id' => $blend->id,
             'name' => 'Moonshine-2',
         ]);
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'drops' => 10,
             'dilution' => 25,
         ]);
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $neroli->id,
             'drops' => 1,
             'dilution' => 10,
         ]);
-        $this->assertDatabaseMissing('blend_version_ingredients', [
+        $this->assertDatabaseMissing('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'drops' => 2,
@@ -261,13 +261,13 @@ describe('Blend Editing', function () {
         $version = $blend->versions()->first();
         $this->from(route('blends.edit', $blend))
             ->put(route('blends.update', $blend), ['name' => 'Spice V2']);
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => $lavenderBottle->id,
         ]);
     });
-    test('Editing a blend auto-assings a bottle ID to newly added ingredients if only 1 active bottle exists', function () {
+    test('Editing a blend auto-assings a bottle ID to newly added ingredients if only 1 available bottle exists', function () {
         $lavender = makeMaterial();
         $galbanum = makeMaterial(['name' => 'Galbanum']);
         $neroli = makeMaterial(['name' => 'Neroli']);
@@ -285,13 +285,13 @@ describe('Blend Editing', function () {
                 ingredient($galbanum),
                 ingredient($lavender),
             ]));
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => $lavenderBottle->id,
         ]);
     });
-    test('editing a blend does not assign a bottle_id when a new ingredient has multiple active bottles', function () {
+    test('editing a blend does not assign a bottle_id when a new ingredient has multiple available bottles', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
         makeBottle($lavender);
@@ -303,13 +303,13 @@ describe('Blend Editing', function () {
         $blendId = basename($response->headers->get('Location'));
         $blend = Blend::findOrFail($blendId);
         $version = $blend->versions()->first();
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => null,
         ]);
     });
-    test('Editing a blend does not auto assign bottle ids when materials has more than one bottle active', function () {
+    test('Editing a blend does not auto assign bottle ids when materials has more than one bottle available', function () {
         $lavender = makeMaterial();
         $galbanum = makeMaterial(['name' => 'Galbanum']);
         $neroli = makeMaterial(['name' => 'Neroli']);
@@ -328,7 +328,7 @@ describe('Blend Editing', function () {
                 ingredient($galbanum),
                 ingredient($lavender),
             ]));
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => null,
@@ -341,9 +341,10 @@ describe('Blend Editing', function () {
 // ==========================================================
 describe('Database Schema', function () {
     test('blend version ingredients table has bottle_id column', function () {
-        expect(Schema::hasColumn('blend_version_ingredients', 'bottle_id'))->toBeTrue();
+        expect(Schema::hasColumn('blend_ingredients', 'bottle_id'))->toBeTrue();
     });
-    test('when creating a blend it auto-assigns the single active bottle', function () {
+
+    test('when creating a blend it auto-assigns the single available bottle', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
         $lavenderBottle = makeBottle($lavender);
@@ -356,7 +357,7 @@ describe('Database Schema', function () {
         $blendId = basename($response->headers->get('Location'));
         $blend = Blend::findOrFail($blendId);
         $version = $blend->versions()->first();
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => $lavenderBottle->id,
@@ -380,7 +381,7 @@ describe('Bottle & Material Constraints', function () {
         [$blend, $version] = makeBlendWithVersion($this->user);
         addIngredient($version, $lavender, $lavenderBottle->id);
 
-        // Delete bottle
+        // Attempt delete
         $this->from(route('materials.show', $lavender->id))
             ->delete(route('bottles.destroy', $lavenderBottle->id));
 
@@ -390,7 +391,7 @@ describe('Bottle & Material Constraints', function () {
         ]);
 
         // Relationship still intact
-        $this->assertDatabaseHas('blend_version_ingredients', [
+        $this->assertDatabaseHas('blend_ingredients', [
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => $lavenderBottle->id,

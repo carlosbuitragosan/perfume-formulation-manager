@@ -52,7 +52,6 @@ function bottlePayload(array $overrides = []): array
         'density' => 0.912,
         'price' => 4.99,
         'notes' => 'test notes',
-        'is_active' => true,
     ];
 
     return array_merge($base, $overrides);

@@ -38,4 +38,9 @@ class Bottle extends Model
     {
         return $this->hasMany(BottleFile::class);
     }
+
+    public function usages()
+    {
+        return $this->hasMany(BlendIngredient::class, 'bottle_id');
+    }
 }

@@ -207,7 +207,7 @@ describe('Bottle display', function () {
         // extract bottle text
         $text = $crawler->filter("div#bottle-{$bottle->id}")->text();
 
-        expect($text)->toContain('In Use');
+        expect($text)->toContain('In use');
     });
 });
 
@@ -475,8 +475,6 @@ describe('Bottle files', function () {
         Storage::fake('public');
 
         $bottle = makeBottle($this->material);
-        $patchUrl = route('bottles.update', $bottle);
-        $redirectUrl = route('materials.show', $bottle->material).'#bottle-'.$bottle->id;
         $file = makeBottleFile($bottle);
 
         // put a fake file into a fake filesystem
@@ -484,8 +482,8 @@ describe('Bottle files', function () {
 
         $payload = bottlePayload(['remove_files' => [$file->id]]);
 
-        patchAs($this->user, $patchUrl, $payload)
-            ->assertRedirect($redirectUrl);
+        patchAs($this->user, route('bottles.update', $bottle), $payload)
+            ->assertRedirect(route('materials.show', $bottle->material).'#bottle-'.$bottle->id);
 
         Storage::disk('public')->assertMissing($file->path);
 

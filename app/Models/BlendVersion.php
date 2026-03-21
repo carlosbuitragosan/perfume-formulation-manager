@@ -21,6 +21,6 @@ class BlendVersion extends Model
 
     public function ingredients()
     {
-        return $this->hasMany(BlendVersionIngredient::class);
+        return $this->hasMany(BlendIngredient::class);
     }
 }

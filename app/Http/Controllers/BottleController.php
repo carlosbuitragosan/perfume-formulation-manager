@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ExtractionMethod;
-use App\Models\BlendVersionIngredient;
 use App\Models\Bottle;
 use App\Models\Material;
 use Illuminate\Http\Request;
@@ -143,8 +142,10 @@ class BottleController extends Controller
         $bottle->is_finished = true;
         $bottle->save();
 
-        return redirect()->route('materials.show', $bottle->material_id)
-            ->with('ok', 'Bottle marked as finished');
+        return redirect()
+            ->route('materials.show', $bottle->material_id)
+            ->with('ok', 'Bottle marked as finished')
+            ->with('bottle_id', $bottle->id);
     }
 
     public function destroy(Request $request, Bottle $bottle)
@@ -153,13 +154,11 @@ class BottleController extends Controller
 
         $material = $bottle->material;
 
-        // Check if bottle is used in any blend ingredient
-        $bottlesInUse = BlendVersionIngredient::where('bottle_id', $bottle->id)->exists();
-
-        if ($bottlesInUse) {
+        if ($bottle->usages()->exists()) {
             return redirect()
                 ->route('materials.show', $material)
-                ->with('error', 'This bottle is in use and cannot be deleted.');
+                ->with('error', 'This bottle is in use and cannot be deleted.')
+                ->with('bottle_id', $bottle->id);
         }
 
         // delete physical files:
@@ -175,7 +174,8 @@ class BottleController extends Controller
 
         return redirect()
             ->route('materials.show', $material)
-            ->with('ok', 'Bottle deleted');
+            ->with('ok', 'Bottle deleted')
+            ->with('bottle_id', $bottle->id);
 
     }
 
@@ -185,6 +185,7 @@ class BottleController extends Controller
         $bottle->save();
 
         return redirect(route('materials.show', $bottle->material).'#bottle-'.$bottle->id)
-            ->with('ok', 'Bottle updated');
+            ->with('ok', 'Bottle unmarked as finished')
+            ->with('bottle_id', $bottle->id);
     }
 }

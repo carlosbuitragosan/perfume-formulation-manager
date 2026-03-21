@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BlendVersionIngredient;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -124,14 +123,17 @@ class MaterialController extends Controller
     // material show page
     public function show(Material $material)
     {
-        $material->load(['bottles.files']);
+        $material->load([
+            'bottles' => function ($query) {
+                $query
+                    ->withExists(['usages as is_used']) // from blend_ing -> bott_id == botts_id
+                    ->orderByDesc('is_used')
+                    ->orderBy('is_finished')
+                    ->orderByDesc('updated_at');
+            },
+            'bottles.files']);
 
-        // Find all bottle ids (unique) that are used in any blend
-        $usedBottleIds = BlendVersionIngredient::pluck('bottle_id')
-            ->filter()
-            ->unique();
-
-        return view('materials.show', compact('material', 'usedBottleIds'));
+        return view('materials.show', compact('material'));
     }
 
     public function destroy(Material $material)

@@ -13,8 +13,9 @@
    <div class="p-4 space-y-4">
       <x-link href="{{ route('materials.bottles.create', $material) }}">Add Bottle</x-link>
 
-      {{-- Succes update message --}}
-      @if (session('ok'))
+      {{-- Succes delete bottle --}}
+
+      @if (session('ok') && ! session('bottle_id'))
          <x-flash>{{ session('ok') }}</x-flash>
       @endif
 
@@ -23,17 +24,15 @@
          @forelse ($material->bottles as $bottle)
             @php
                $enum = ExtractionMethod::tryFrom((string) $bottle->method);
-               // return true if the bottle is in this list
-               $bottleInUse = $usedBottleIds->contains($bottle->id);
             @endphp
 
             <div class="card relative border p-4 text-sm space-y-1" id="bottle-{{ $bottle->id }}">
                <div class="flex items-center gap-2 mb-1">
-                  @if ($bottleInUse)
+                  @if ($bottle->is_used)
                      <span
                         class="text-sm px-2 py-0.5 rounded font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100"
                      >
-                        In Use
+                        In use
                      </span>
                   @endif
 
@@ -156,21 +155,17 @@
                {{-- Actions dropdown --}}
                <div class="absolute top-2 right-2">
                   @include(
-                     'bottles.partials.actions-dropdown',
-                     [
-                        'bottle' => $bottle,
-                        'bottleInUse' => $bottleInUse,
-                     ]
-                  )
+                  'bottles.partials.actions-dropdown', ['bottle' => $bottle]                  )
                </div>
 
                {{-- Error message --}}
-               @if (session('error'))
-                  <div class="mb-4">
-                     <x-flash type="error">
-                        {{ session('error') }}
-                     </x-flash>
-                  </div>
+               @if (session('error') && session('bottle_id') == $bottle->id)
+                  <x-flash type="error">{{ session('error') }}</x-flash>
+               @endif
+
+               {{-- Succes update message --}}
+               @if (session('ok') && session('bottle_id') == $bottle->id)
+                  <x-flash>{{ session('ok') }}</x-flash>
                @endif
             </div>
          @empty

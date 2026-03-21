@@ -97,7 +97,7 @@ class BlendController extends Controller
 
         // Create ingredients for this version
         foreach ($data['materials'] as $row) {
-            // Find active bottles for each material
+            // Find available bottles for each material
             $availableBottlesByMaterial = Bottle::where('user_id', auth()->id())
                 ->where('material_id', $row['material_id'])
                 ->where('is_finished', 0)
@@ -275,7 +275,7 @@ class BlendController extends Controller
                 // ... fetch it from the list and assign a bottle id
                 $bottleId = $existingBottleIds[$materialId];
             } else {
-                // Fetch active bottles from newly added ingredient
+                // Fetch available bottles from newly added ingredient
                 $materialBottles = $availableBottlesByMaterial->get($materialId, collect());
                 if ($materialBottles->count() === 1) {
                     // Assign the bottle ID
