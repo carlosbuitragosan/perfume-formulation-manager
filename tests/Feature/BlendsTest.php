@@ -49,6 +49,7 @@ describe('Blend Creation (Form & Submission)', function () {
         expect($form->filter('select[name="materials[0][dilution]"]')->count())->toBe(1);
         expect($form->filter('button[type="submit"]')->text())->toContain('SAVE');
     });
+
     it('creates a blend and redirects to its page', function () {
         $lavender = makeMaterial();
         $galbanum = makeMaterial(['name' => 'Galbanum']);
@@ -66,6 +67,7 @@ describe('Blend Creation (Form & Submission)', function () {
             'name' => 'Sunshine',
         ]);
     });
+
     test('create form shows only one ingredient row with the expected inputs', function () {
         [, $crawler] = getPageCrawler($this->user, route('blends.create'));
         expect($crawler->filter('[data-testid="ingredient-row"]')->count())->toBe(1);
@@ -73,6 +75,7 @@ describe('Blend Creation (Form & Submission)', function () {
         expect($crawler->filter('input[name="materials[0][drops]"]')->count())->toBe(1);
         expect($crawler->filter('select[name="materials[0][dilution]"]')->count())->toBe(1);
     });
+
     test('Create form provides the button and template needed to add ingredients', function () {
         [, $crawler] = getPageCrawler($this->user, route('blends.create'));
         $addButton = $crawler->filter('[data-testid="add-ingredient"]');
@@ -81,6 +84,7 @@ describe('Blend Creation (Form & Submission)', function () {
         expect($template->count())->toBe(1);
         expect($template->html())->toContain('__INDEX__');
     });
+
     it('rejects duplicate materials in the same blend submission', function () {
         $lavender = makeMaterial();
         $payload = blendPayload('Sunshine', [
@@ -92,6 +96,7 @@ describe('Blend Creation (Form & Submission)', function () {
         $this->assertDatabaseCount('blends', 0);
         $this->assertDatabaseCount('blend_ingredients', 0);
     });
+
     test('create blend shows inline validation error per field', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
@@ -115,40 +120,61 @@ describe('Blend Creation (Form & Submission)', function () {
 // ==========================================================
 describe('Blend Display & Breakdown', function () {
     it('shows blend version with ingredients and pure % breakdown', function () {
+        // Create materials
         $lavender = makeMaterial();
         $galbanum = makeMaterial(['name' => 'Galbanum']);
+
+        // Create blend
         [$blend, $version] = makeBlendWithVersion($this->user, 'Sunshine');
-        addIngredient($version, $lavender);
-        addIngredient($version, $galbanum);
+        $lavenderIngredient = addIngredient($version, $lavender);
+        $galbanumIngredient = addIngredient($version, $galbanum);
+
+        // Get show page HTML
         [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+
+        // expect name & version
         expect($crawler->filter('header')->text())->toContain($blend->name);
         expect($crawler->filter('div[data-testid="blend-version"][data-version="1.0"]')->count())->toBe(1);
-        $lavenderRow = $crawler->filter('tr[data-testid="blend-ingredient-row"][data-material-id="'.$lavender->id.'"]');
+
+        // Expect lavender
+        $lavenderRow = $crawler->filter('tr[data-ingredient-id="'.$lavenderIngredient->id.'"]');
         expect($lavenderRow->count())->toBe(1);
         expect($lavenderRow->filter('[data-col="material"]')->text())->toBe($lavender->name);
         expect($lavenderRow->filter('[data-col="drops"]')->text())->toBe('4');
         expect($lavenderRow->filter('[data-col="dilution"]')->text())->toBe('25%');
         expect($lavenderRow->filter('[data-col="pure_pct"]')->text())->toBe('50.00%');
-        $galbanumRow = $crawler->filter('tr[data-testid="blend-ingredient-row"][data-material-id="'.$galbanum->id.'"]');
+
+        // Expect galbanum
+        $galbanumRow = $crawler->filter('tr[data-ingredient-id="'.$galbanumIngredient->id.'"]');
         expect($galbanumRow->count())->toBe(1);
         expect($galbanumRow->filter('[data-col="material"]')->text())->toBe($galbanum->name);
         expect($galbanumRow->filter('[data-col="drops"]')->text())->toBe('4');
         expect($galbanumRow->filter('[data-col="dilution"]')->text())->toBe('25%');
         expect($galbanumRow->filter('[data-col="pure_pct"]')->text())->toBe('50.00%');
     });
-    test('blend show page has a link for a bottle used for each ingredient that has a bottle assigned to it', function () {
+
+    test('blend show indicates which ingredients have a bottle assigned', function () {
+        // Create ingredients, bottle & blend
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
         $lavenderBottle = makeBottle($lavender);
         [$blend, $version] = makeBlendWithVersion($this->user, 'Forest');
-        addIngredient($version, $lavender, $lavenderBottle->id, 4, 25);
-        addIngredient($version, $neroli);
-        $blendUrl = route('blends.show', $blend);
-        $lavenderbottleUrl = route('materials.show', $lavender);
-        $neroliBottleUrl = route('materials.show', $neroli);
-        [, $crawler] = getPageCrawler($this->user, $blendUrl);
-        expect($crawler->filter('a[href="'.$lavenderbottleUrl.'"]'))->toHaveCount(1);
-        expect($crawler->filter('a[href="'.$neroliBottleUrl.'"]'))->toHaveCount(0);
+        $lavenderIngredient = addIngredient($version, $lavender, $lavenderBottle->id, 4, 25);
+        $neroliIngredient = addIngredient($version, $neroli);
+
+        // get HTML
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+
+        // Expect
+        expect($crawler
+            ->filter('button[data-ingredient-id="'.$lavenderIngredient->id.'"]')
+            ->attr('class'))
+            ->not->toContain('opacity-60');
+
+        expect($crawler
+            ->filter('button[data-ingredient-id="'.$neroliIngredient->id.'"]')
+            ->attr('class'))
+            ->toContain('opacity-60');
     });
 });
 
@@ -206,6 +232,7 @@ describe('Blend Editing', function () {
         expect($neroliRow->filter('input[name*="[drops]"][value="5"]')->count())->toBe(1);
         expect($neroliRow->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBe(1);
     });
+
     test('user can update a blend from the edit form', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
@@ -247,6 +274,7 @@ describe('Blend Editing', function () {
             'dilution' => 25,
         ]);
     });
+
     test('Editing a blend does not change bottle assignments of existing ingredients', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
@@ -267,6 +295,7 @@ describe('Blend Editing', function () {
             'bottle_id' => $lavenderBottle->id,
         ]);
     });
+
     test('Editing a blend auto-assings a bottle ID to newly added ingredients if only 1 available bottle exists', function () {
         $lavender = makeMaterial();
         $galbanum = makeMaterial(['name' => 'Galbanum']);
@@ -291,6 +320,7 @@ describe('Blend Editing', function () {
             'bottle_id' => $lavenderBottle->id,
         ]);
     });
+
     test('editing a blend does not assign a bottle_id when a new ingredient has multiple available bottles', function () {
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'Neroli']);
@@ -309,6 +339,7 @@ describe('Blend Editing', function () {
             'bottle_id' => null,
         ]);
     });
+
     test('Editing a blend does not auto assign bottle ids when materials has more than one bottle available', function () {
         $lavender = makeMaterial();
         $galbanum = makeMaterial(['name' => 'Galbanum']);

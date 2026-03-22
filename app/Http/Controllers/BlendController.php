@@ -130,18 +130,19 @@ class BlendController extends Controller
             ->with(['ingredients.material'])
             ->first();
 
-        $rows = collect();
+        $blendIngredients = collect();
 
         if ($version) {
             $pureTotal = $version->ingredients->sum(function ($ing) {
                 return $ing->drops * ($ing->dilution / 100);
             });
 
-            $rows = $version->ingredients->map(function ($ing) use ($pureTotal) {
+            $blendIngredients = $version->ingredients->map(function ($ing) use ($pureTotal) {
                 $pure = $ing->drops * ($ing->dilution / 100);
                 $pct = $pureTotal > 0 ? ($pure / $pureTotal) * 100 : 0;
 
                 return [
+                    'blend_ingredient_id' => $ing->id,
                     'material_id' => $ing->material_id,
                     'material_name' => $ing->material->name,
                     'bottle_id' => $ing->bottle_id,
@@ -152,7 +153,7 @@ class BlendController extends Controller
             });
         }
 
-        return view('blends.show', compact('blend', 'version', 'rows'));
+        return view('blends.show', compact('blend', 'version', 'blendIngredients'));
     }
 
     public function destroy(Blend $blend)

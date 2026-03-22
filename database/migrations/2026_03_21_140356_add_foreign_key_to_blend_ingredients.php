@@ -10,9 +10,11 @@ return new class extends Migration
     {
         Schema::table('blend_ingredients', function (Blueprint $table) {
             // Drop old constraints from old table name
-            $table->dropForeign('blend_version_ingredients_blend_version_id_foreign');
-            $table->dropForeign('blend_version_ingredients_material_id_foreign');
-            $table->dropForeign('blend_version_ingredients_bottle_id_foreign');
+            if (DB::getDrivername() !== 'sqlite') {
+                $table->dropForeign('blend_version_ingredients_blend_version_id_foreign');
+                $table->dropForeign('blend_version_ingredients_material_id_foreign');
+                $table->dropForeign('blend_version_ingredients_bottle_id_foreign');
+            }
 
             // Recreate with correct names
             $table->foreign('blend_version_id')
@@ -36,9 +38,11 @@ return new class extends Migration
     {
         Schema::table('blend_ingredients', function (Blueprint $table) {
             // Drop new constraints
-            $table->dropForeign(['blend_version_id']);
-            $table->dropForeign(['material_id']);
-            $table->dropForeign(['bottle_id']);
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign(['blend_version_id']);
+                $table->dropForeign(['material_id']);
+                $table->dropForeign(['bottle_id']);
+            }
 
             // Recreate old constraints (old names + old behavior)
             $table->foreign('blend_version_id', 'blend_version_ingredients_blend_version_id_foreign')

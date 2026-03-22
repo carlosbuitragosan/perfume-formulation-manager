@@ -19,37 +19,31 @@
          <div class="font-semibold mb-3">Version 1.0</div>
 
          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm border-separate border-spacing-x-3">
                <thead>
                   <tr class="text-left">
-                     <th class="py-2">Material</th>
-                     <th class="py-2"># Drops</th>
+                     <th class="py-2">Ingredient</th>
+                     <th class="py-2">Drops</th>
                      <th class="py-2">Dilution</th>
                      <th class="py-2">Pure %</th>
                   </tr>
                </thead>
-
                <tbody>
-                  @foreach ($rows as $row)
-                     <tr
-                        data-testid="blend-ingredient-row"
-                        data-material-id="{{ $row['material_id'] }}"
-                     >
-                        @if ($row['bottle_id'])
-                           <td data-col="material" class="py-2">
-                              <a
-                                 href="{{ route('materials.show', $row['material_id']) }}"
-                                 class="underline"
-                              >
-                                 {{ $row['material_name'] }}
-                              </a>
-                           </td>
-                        @else
-                           <td data-col="material" class="py-2">{{ $row['material_name'] }}</td>
-                        @endif
-                        <td data-col="drops" class="py-2">{{ $row['drops'] }}</td>
-                        <td data-col="dilution" class="py-2">{{ $row['dilution'] }}</td>
-                        <td data-col="pure_pct" class="py-2">{{ $row['pure_pct'] }}</td>
+                  @foreach ($blendIngredients as $blendIngredient)
+                     <tr data-ingredient-id="{{ $blendIngredient['blend_ingredient_id'] }}">
+                        <td data-col="material" class="p-2">
+                           <x-blend-ingredient-button
+                              :ingredient="$blendIngredient"
+                              variant="green"
+                           />
+                        </td>
+                        <td data-col="drops" class="py-2">{{ $blendIngredient['drops'] }}</td>
+                        <td data-col="dilution" class="py-2">
+                           {{ $blendIngredient['dilution'] }}
+                        </td>
+                        <td data-col="pure_pct" class="py-2">
+                           {{ $blendIngredient['pure_pct'] }}
+                        </td>
                      </tr>
                   @endforeach
                </tbody>
