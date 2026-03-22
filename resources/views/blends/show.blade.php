@@ -31,7 +31,7 @@
                <tbody>
                   @foreach ($blendIngredients as $blendIngredient)
                      <tr data-ingredient-id="{{ $blendIngredient['blend_ingredient_id'] }}">
-                        <td data-col="material" class="p-2">
+                        <td data-col="material" class="py-2">
                            <x-blend-ingredient-button
                               :ingredient="$blendIngredient"
                               variant="green"
