@@ -17,7 +17,7 @@ Laravel · Livewire · MySQL · Pest · Tailwind
 
 ## Deployment
 
-Deployed via GitHub Actions using a pull-based SSH deployment workflow. Each push to main triggers a controlled production update on the server.
+Deployed to a VPS using GitHub Actions with an automated SSH-based CI/CD pipeline.
 
 ## Next Steps
 
