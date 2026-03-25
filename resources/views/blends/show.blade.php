@@ -32,12 +32,14 @@
                   @foreach ($blendIngredients as $blendIngredient)
                      <tr data-ingredient-id="{{ $blendIngredient['blend_ingredient_id'] }}">
                         <td data-col="material" class="py-2">
-                           <x-blend-ingredient-button
-                              :ingredient="$blendIngredient"
+                           <x-blend-ingredient-link
+                              :blendIngredient="$blendIngredient"
                               variant="green"
                            />
                         </td>
-                        <td data-col="drops" class="py-2">{{ $blendIngredient['drops'] }}</td>
+                        <td data-col="drops" class="py-2">
+                           {{ $blendIngredient['drops'] }}
+                        </td>
                         <td data-col="dilution" class="py-2">
                            {{ $blendIngredient['dilution'] }}
                         </td>

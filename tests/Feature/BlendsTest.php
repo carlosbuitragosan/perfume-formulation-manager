@@ -167,14 +167,29 @@ describe('Blend Display & Breakdown', function () {
 
         // Expect
         expect($crawler
-            ->filter('button[data-ingredient-id="'.$lavenderIngredient->id.'"]')
+            ->filter('a[data-ingredient-id="'.$lavenderIngredient->id.'"]')
             ->attr('class'))
             ->not->toContain('opacity-60');
 
         expect($crawler
-            ->filter('button[data-ingredient-id="'.$neroliIngredient->id.'"]')
+            ->filter('a[data-ingredient-id="'.$neroliIngredient->id.'"]')
             ->attr('class'))
             ->toContain('opacity-60');
+    });
+
+    test('Each ingredient in the blend show page links to its material page', function () {
+        // make material & blend
+        $lavender = makeMaterial();
+        $neroli = makeMaterial(['name' => 'neroli']);
+        [$blend, $version] = makeBlendWithVersion($this->user, 'new perfume');
+        $lavenderIngredient = addIngredient($version, $lavender);
+
+        // Get blend show page html
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        $lavenderUri = $crawler->filter('a[data-ingredient-id="'.$lavenderIngredient->id.'"]')->link()->getUri();
+
+        // Assert ingredients have a link to related material
+        expect($lavenderUri)->toBe(route('materials.show', $lavender));
     });
 });
 
