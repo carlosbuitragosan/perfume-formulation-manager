@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlendIngredient;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -133,7 +134,15 @@ class MaterialController extends Controller
             },
             'bottles.files']);
 
-        return view('materials.show', compact('material'));
+        $blendIngredientId = request('ingredient');
+        $selectedBottleId = null;
+
+        if ($blendIngredientId) {
+            $blendIngredient = BlendIngredient::find($blendIngredientId);
+            $selectedBottleId = $blendIngredient?->bottle_id;
+        }
+
+        return view('materials.show', compact('material', 'selectedBottleId'));
     }
 
     public function destroy(Material $material)

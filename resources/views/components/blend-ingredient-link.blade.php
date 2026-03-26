@@ -13,7 +13,7 @@
 @endphp
 
 <a
-   href="{{ route('materials.show', $blendIngredient['material_id']) }}"
+   href="{{ route('materials.show', $blendIngredient['material_id']) }}?ingredient={{ $blendIngredient['blend_ingredient_id'] }}"
    class="{{ $base }} {{ $colors[$variant] }} {{ ! $hasBottle ? 'opacity-60' : '' }}"
    data-ingredient-id="{{ $blendIngredient['blend_ingredient_id'] }}"
 >

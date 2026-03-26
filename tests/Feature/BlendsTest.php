@@ -177,7 +177,7 @@ describe('Blend Display & Breakdown', function () {
             ->toContain('opacity-60');
     });
 
-    test('Each ingredient in the blend show page links to its material page', function () {
+    test('Each ingredient in the blend show page links to its material page with ingredient context', function () {
         // make material & blend
         $lavender = makeMaterial();
         $neroli = makeMaterial(['name' => 'neroli']);
@@ -189,7 +189,8 @@ describe('Blend Display & Breakdown', function () {
         $lavenderUri = $crawler->filter('a[data-ingredient-id="'.$lavenderIngredient->id.'"]')->link()->getUri();
 
         // Assert ingredients have a link to related material
-        expect($lavenderUri)->toBe(route('materials.show', $lavender));
+        expect($lavenderUri)->toContain(route('materials.show', $lavender));
+        expect($lavenderUri)->toContain('ingredient='.$lavenderIngredient->id);
     });
 });
 

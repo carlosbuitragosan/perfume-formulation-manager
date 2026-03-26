@@ -24,9 +24,13 @@
          @forelse ($material->bottles as $bottle)
             @php
                $enum = ExtractionMethod::tryFrom((string) $bottle->method);
+               $isSelected = $bottle->id === $selectedBottleId;
             @endphp
 
-            <div class="card relative border p-4 text-sm space-y-1" id="bottle-{{ $bottle->id }}">
+            <div
+               class="card relative border p-4 text-sm space-y-1 {{ $selectedBottleId && ! $isSelected ? 'opacity-30' : '' }}"
+               id="bottle-{{ $bottle->id }}"
+            >
                <div class="flex items-center gap-2 mb-1">
                   @if ($bottle->is_used)
                      <span
