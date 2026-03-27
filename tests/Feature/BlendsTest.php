@@ -444,4 +444,19 @@ describe('Bottle & Material Constraints', function () {
             'bottle_id' => $lavenderBottle->id,
         ]);
     });
+    test('creating a bottle with ingredient context assigns it to that blend ingredient', function () {
+        // Create a blend without any bottles
+        $lavender = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $lavenderIngredient = addIngredient($version, $lavender);
+
+        // Post a bottle for an ingredient in the blend
+        postAs($this->user,
+            route('materials.bottles.store', $lavender).'?ingredient='.$lavenderIngredient->id, bottlePayload());
+
+        $lavenderIngredient->refresh();
+
+        // Assert bottle has been assigned to the blend ingredient
+        expect($lavenderIngredient->bottle_id)->not->toBe(null);
+    });
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ExtractionMethod;
+use App\Models\BlendIngredient;
 use App\Models\Bottle;
 use App\Models\Material;
 use Illuminate\Http\Request;
@@ -40,16 +41,24 @@ class BottleController extends Controller
             'files.*' => ['file', 'max:5120'],
         ]);
 
+        // Get the uploaded files
         $files = $request->file('files', []);
+
+        // Remove the files from the request ($data)
         unset($data['files']);
 
+        // Assign logged in user to bottle.user_id
         $data['user_id'] = auth()->id();
+
+        // Create bottle
         $bottle = $material->bottles()->create($data);
 
         foreach ($files as $file) {
             $originalName = $file->getClientOriginalName();
-            $storedPath = $file->store("bottles/{$bottle->id}", 'public');
 
+            // Store files in 'public' disk (storage/app/public)
+            $storedPath = $file->store("bottles/{$bottle->id}", 'public');
+            // Create files
             $bottle->files()->create([
                 'user_id' => auth()->id(),
                 'path' => $storedPath,
@@ -58,6 +67,18 @@ class BottleController extends Controller
                 'size_bytes' => $file->getSize(),
                 'note' => null,
             ]);
+        }
+
+        $blendIngredientId = $request->input('ingredient');
+
+        if ($blendIngredient = BlendIngredient::find($blendIngredientId)) {
+            $blendIngredient->update([
+                'bottle_id' => $bottle->id,
+            ]);
+
+            $blend = $blendIngredient->BlendVersion?->blend;
+
+            return redirect()->route('blends.show', $blend);
         }
 
         return redirect()->route('materials.show', $material);

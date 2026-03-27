@@ -126,10 +126,19 @@ class MaterialController extends Controller
     {
         $material->load([
             'bottles' => function ($query) {
+                // EXISTS (
+                //     SELECT 1
+                //     FROM blend_ingredients
+                //     WHERE blend_ingredients.bottle_id = bottles.id
+                // )
                 $query
-                    ->withExists(['usages as is_used']) // from blend_ing -> bott_id == botts_id
+                // Add a virtual "is_used" flag: true if this bottle is referenced by any blend ingredients
+                    ->withExists(['usages as is_used'])
+                    // Sort used bottles first (true = 1, false = 0)
                     ->orderByDesc('is_used')
+                    // Then prioritise unfinished bottles (false before true)
                     ->orderBy('is_finished')
+                    // Then sort most recently updated bottles first within each group
                     ->orderByDesc('updated_at');
             },
             'bottles.files']);

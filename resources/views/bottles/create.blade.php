@@ -12,6 +12,8 @@
          class="space-y-3"
       >
          @csrf
+         <!-- Pass blend ingredient context so newly created bottles can be assigned -->
+         <input type="hidden" name="ingredient" value="{{ request('ingredient') }}" />
 
          <label class="block">
             <span class="text-sm">Supplier name</span>
