@@ -12,7 +12,7 @@
 
    <div class="p-4 space-y-4">
       <x-link
-         href="{{ route('materials.bottles.create', $material) }}?ingredient={{ request('ingredient') }}"
+         href="{{ route('materials.bottles.create', $material) }}{{ request('ingredient') ?  '?ingredient='.request('ingredient') : '' }}"
       >
          Add Bottle
       </x-link>

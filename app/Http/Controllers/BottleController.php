@@ -70,8 +70,10 @@ class BottleController extends Controller
         }
 
         $blendIngredientId = $request->input('ingredient');
+        $blendIngredient = BlendIngredient::find($blendIngredientId);
 
-        if ($blendIngredient = BlendIngredient::find($blendIngredientId)) {
+        if ($blendIngredient && $blendIngredient->bottle_id == null) {
+
             $blendIngredient->update([
                 'bottle_id' => $bottle->id,
             ]);

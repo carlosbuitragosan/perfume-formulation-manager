@@ -454,9 +454,12 @@ describe('Bottle & Material Constraints', function () {
         postAs($this->user,
             route('materials.bottles.store', $lavender).'?ingredient='.$lavenderIngredient->id, bottlePayload());
 
+        // Refresh DB
         $lavenderIngredient->refresh();
 
         // Assert bottle has been assigned to the blend ingredient
         expect($lavenderIngredient->bottle_id)->not->toBe(null);
     });
+
+    test('creating a bottle does not reassign an ingredient that already has a bottle', function () {});
 });

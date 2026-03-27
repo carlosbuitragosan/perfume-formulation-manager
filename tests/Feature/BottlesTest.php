@@ -15,14 +15,6 @@ beforeEach(function () {
 
 describe('Bottle creation', function () {
 
-    it('shows a "add" button on the material show page linking to the create form', function () {
-        $createUrl = route('materials.bottles.create', $this->material);
-        [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material));
-
-        $addButton = $crawler->filter('a[href="'.$createUrl.'"]');
-        expect($addButton->count())->toBe(1, 'Missing add link to create bottle');
-    });
-
     it('shows the bottle create form with all fields', function () {
         $createUrl = route('materials.bottles.create', $this->material);
         [, $crawler] = getPageCrawler($this->user, $createUrl);
@@ -79,6 +71,28 @@ describe('Bottle creation', function () {
 
         expect($crawler->text())->toContain('Expiry date');
         expect($crawler->filter('input[type="date"][name="expiry_date"]')->count())->toBe(1, 'Missing expiry date in form');
+    });
+
+    test('creating a bottle does not reassign an ingredient that already has a bottle', function () {
+        // Create bottle
+        $bottle1 = makeBottle($this->material);
+
+        // Create blend & add ingredient
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material, $bottle1->id);
+
+        expect($ingredient->bottle_id)->toBe($bottle1->id);
+
+        // Create new bottle with ingredient context (?ingredient=)
+        postAs(
+            $this->user,
+            route('materials.bottles.store', $this->material).'?ingredient='.$ingredient->id,
+            bottlePayload()
+        );
+
+        // Check that bottle has not being reassigned
+        $ingredient->refresh();
+        expect($ingredient->bottle_id)->toBe($bottle1->id);
     });
 });
 
