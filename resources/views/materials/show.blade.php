@@ -11,15 +11,20 @@
    </x-slot>
 
    <div class="p-4 space-y-4">
+      
       @if ($blendIngredient && ! $selectedBottleId)
          <x-flash type="warning">
             <p>
-               Adding a bottle will assign it to {{ $material->name }} (Blend:
+               Assign a bottle to {{ $material->name }} (Blend:
                {{ $blendIngredient->blendVersion->blend->name }})
             </p>
-            @if ($material->bottles->isNotEmpty())
-               <p>You can also assign one from the list below</p>
-            @endif
+
+            <ul class="mt-2 list-disc list-inside">
+               <li>Add a new bottle</li>
+               @if ($material->bottles->isNotEmpty())
+                  <li>Select one from the list below</li>
+               @endif
+            </ul>
          </x-flash>
       @endif
 
@@ -41,15 +46,30 @@
             @php
                $enum = ExtractionMethod::tryFrom((string) $bottle->method);
                $isSelected = $bottle->id === $selectedBottleId;
+               $isSelectable = $blendIngredient && ! $selectedBottleId && ! $bottle->is_finished;
             @endphp
 
-            <div
-               class="card relative border p-4 text-sm space-y-1 {{ $selectedBottleId && ! $isSelected ? 'opacity-30' : '' }}"
-               id="bottle-{{ $bottle->id }}"
-            >
-               <div class="flex items-center gap-2 mb-1">
-                  @if ($bottle->is_used)
-                     <span
+            {{-- Wrap the bottle card in a form  to allow selection --}}
+               @if ($isSelectable)
+                  <form method="POST"action="{{ route('blend-ingredients.assign-bottle', $blendIngredient) }}">
+                     @csrf
+                     <input type="hidden" name="bottle_id" value="{{ $bottle->id }}">
+               @endif
+               <div
+                  class="card relative border p-4 text-sm space-y-1 {{ $selectedBottleId && ! $isSelected ? 'opacity-30' : '' }} {{ $isSelectable? 'cursor-pointer hover:border-indigo-500' : '' }}"
+                  id="bottle-{{ $bottle->id }}"
+               >
+               @if ($isSelectable)
+                  <button 
+                  type="submit" 
+                  class="absolute inset-0 w-full h-full z-10" 
+                  onclick="return confirm('Assign this bottle to {{ $material->name }} (Blend: {{ $blendIngredient->blendVersion->blend->name }})?')"                                
+                  >
+                  </button>
+               @endif
+                  <div class="flex items-center gap-2 mb-1">
+                     @if ($bottle->is_used)
+                        <span
                         class="text-sm px-2 py-0.5 rounded font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100"
                      >
                         In use
@@ -180,10 +200,12 @@
                @endif
 
                {{-- Actions dropdown --}}
+               @if (!$isSelectable)
                <div class="absolute top-2 right-2">
                   @include(
                   'bottles.partials.actions-dropdown', ['bottle' => $bottle]                  )
                </div>
+               @endif
 
                {{-- Error message --}}
                @if (session('error') && session('bottle_id') == $bottle->id)
@@ -195,6 +217,10 @@
                   <x-flash>{{ session('ok') }}</x-flash>
                @endif
             </div>
+            @if ($isSelectable)
+               </form>
+            @endif
+
          @empty
             <div class="card p-4">
                <div class="text-sm text-gray-400">No bottles yet.</div>

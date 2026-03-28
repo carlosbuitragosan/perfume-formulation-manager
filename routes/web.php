@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\DemoLoginController;
 use App\Http\Controllers\BlendController;
+use App\Http\Controllers\BlendIngredientController;
 use App\Http\Controllers\BottleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaterialController;
@@ -47,6 +48,10 @@ Route::middleware('auth')
         Route::resource('blends', BlendController::class)
             ->only(['create', 'store', 'show', 'destroy', 'edit', 'update']);
 
+        // Blend ingredients
+        Route::post('/blend-ingredients/{blendIngredient}/assign-bottle',
+            [BlendIngredientController::class, 'assignBottle'])
+            ->name('blend-ingredients.assign-bottle');
     });
 
 Route::post('/demo-login', [DemoLoginController::class, 'store'])

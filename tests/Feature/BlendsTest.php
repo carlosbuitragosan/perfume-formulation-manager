@@ -506,7 +506,7 @@ describe('Bottle & Material Constraints', function () {
         $text = $crawler->text();
 
         // Assert message is present
-        expect($text)->toContain('Adding a bottle will assign it to');
+        expect($text)->toContain('Add a new bottle');
         expect($text)->toContain($ingredient->material->name);
         expect($text)->toContain($blend->name);
     });
@@ -517,9 +517,8 @@ describe('Bottle & Material Constraints', function () {
         [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
         $ingredient = addIngredient($version, $material);
 
-        // Create 2 bottles for same ingredient
-        $bottle1 = makeBottle($material);
-        $bottle2 = makeBottle($material);
+        // Create  bottle for same ingredient
+        $bottle = makeBottle($material);
 
         // Get HTML from materials.show page
         [, $crawler] = getPageCrawler($this->user,
@@ -527,6 +526,25 @@ describe('Bottle & Material Constraints', function () {
         $text = $crawler->text();
 
         // Assert message exists
-        expect($text)->toContain('You can also assign one from the list below');
+        expect($text)->toContain('Select one from the list below');
+    });
+
+    test('selecting a bottle assigns it to the ingredient', function () {
+        // Create material & blend + add ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $material);
+
+        // Create  bottle for same ingredient
+        $bottle = makeBottle($material);
+
+        // Perform assginment request
+        postAs($this->user, route('blend-ingredients.assign-bottle', $ingredient), [
+            'bottle_id' => $bottle->id,
+        ]);
+        $ingredient->refresh();
+        $bottle->refresh();
+        // Assert ingredient now has bottle_id
+        expect($ingredient->bottle_id)->toBe($bottle->id);
     });
 });
