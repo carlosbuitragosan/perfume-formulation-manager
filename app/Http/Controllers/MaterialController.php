@@ -143,15 +143,17 @@ class MaterialController extends Controller
             },
             'bottles.files']);
 
+        // GET request, data is in url
         $blendIngredientId = request('ingredient');
         $selectedBottleId = null;
+        $blendIngredient = null;
 
         if ($blendIngredientId) {
             $blendIngredient = BlendIngredient::find($blendIngredientId);
             $selectedBottleId = $blendIngredient?->bottle_id;
         }
 
-        return view('materials.show', compact('material', 'selectedBottleId'));
+        return view('materials.show', compact('material', 'selectedBottleId', 'blendIngredient'));
     }
 
     public function destroy(Material $material)

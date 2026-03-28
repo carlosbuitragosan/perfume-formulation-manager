@@ -46,7 +46,7 @@
 
                   @if ($bottle->is_finished)
                      <span
-                        class="text-sm px-2 py-0.5 rounded font-medium bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                        class="text-sm px-2 py-0.5 rounded font-medium bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100"
                      >
                         Finished
                      </span>
@@ -158,6 +158,13 @@
                         </a>
                      @endforeach
                   </div>
+               @endif
+
+               @if ($isSelected)
+                  <x-flash type="ok">
+                     This bottle is assigned to {{ $blendIngredient->material->name }} (Blend:
+                     {{ $blendIngredient->blendVersion->blend->name }})
+                  </x-flash>
                @endif
 
                {{-- Actions dropdown --}}
