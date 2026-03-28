@@ -11,6 +11,13 @@
    </x-slot>
 
    <div class="p-4 space-y-4">
+      @if ($blendIngredient && ! $selectedBottleId)
+         <x-flash type="warning">
+            Adding a bottle will assign it to {{ $material->name }} (Blend:
+            {{ $blendIngredient->blendVersion->blend->name }})
+         </x-flash>
+      @endif
+
       <x-link
          href="{{ route('materials.bottles.create', $material) }}{{ request('ingredient') ?  '?ingredient='.request('ingredient') : '' }}"
       >
@@ -161,8 +168,8 @@
                @endif
 
                @if ($isSelected)
-                  <x-flash type="ok">
-                     This bottle is assigned to {{ $blendIngredient->material->name }} (Blend:
+                  <x-flash type="warning">
+                     This bottle is assigned to {{ $material->name }} (Blend:
                      {{ $blendIngredient->blendVersion->blend->name }})
                   </x-flash>
                @endif

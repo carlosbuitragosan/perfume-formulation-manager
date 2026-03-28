@@ -490,8 +490,23 @@ describe('Bottle & Material Constraints', function () {
 
         // Assert message is visible
         expect($bottleText)->toContain('This bottle is assigned to');
-        expect($bottleText)->toContain($ingredient->material->name);
+        expect($bottleText)->toContain($material->name);
         expect($bottleText)->toContain($blend->name);
     });
 
+    test('material show page informs user that creating a bottle will assign it to the ingredient', function () {
+        // Create material & blend + add ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $material);
+
+        // Get HTML from materials.show with blend ingredient context
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $material).'?ingredient='.$ingredient->id);
+        $text = $crawler->text();
+
+        // Assert message is present
+        expect($text)->toContain('Adding a bottle will assign it to');
+        expect($text)->toContain($ingredient->material->name);
+        expect($text)->toContain($blend->name);
+    });
 });
