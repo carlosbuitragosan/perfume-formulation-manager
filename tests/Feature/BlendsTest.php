@@ -501,12 +501,32 @@ describe('Bottle & Material Constraints', function () {
         $ingredient = addIngredient($version, $material);
 
         // Get HTML from materials.show with blend ingredient context
-        [, $crawler] = getPageCrawler($this->user, route('materials.show', $material).'?ingredient='.$ingredient->id);
+        [, $crawler] = getPageCrawler($this->user,
+            route('materials.show', $material).'?ingredient='.$ingredient->id);
         $text = $crawler->text();
 
         // Assert message is present
         expect($text)->toContain('Adding a bottle will assign it to');
         expect($text)->toContain($ingredient->material->name);
         expect($text)->toContain($blend->name);
+    });
+
+    test('When arriving from an ingredient without a bottle and bottles exist, show a message indicating the user can select one', function () {
+        // Create material & blend + add ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $material);
+
+        // Create 2 bottles for same ingredient
+        $bottle1 = makeBottle($material);
+        $bottle2 = makeBottle($material);
+
+        // Get HTML from materials.show page
+        [, $crawler] = getPageCrawler($this->user,
+            route('materials.show', $material).'?ingredient='.$ingredient->id);
+        $text = $crawler->text();
+
+        // Assert message exists
+        expect($text)->toContain('You can also assign one from the list below');
     });
 });

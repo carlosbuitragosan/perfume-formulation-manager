@@ -13,8 +13,13 @@
    <div class="p-4 space-y-4">
       @if ($blendIngredient && ! $selectedBottleId)
          <x-flash type="warning">
-            Adding a bottle will assign it to {{ $material->name }} (Blend:
-            {{ $blendIngredient->blendVersion->blend->name }})
+            <p>
+               Adding a bottle will assign it to {{ $material->name }} (Blend:
+               {{ $blendIngredient->blendVersion->blend->name }})
+            </p>
+            @if ($material->bottles->isNotEmpty())
+               <p>You can also assign one from the list below</p>
+            @endif
          </x-flash>
       @endif
 
