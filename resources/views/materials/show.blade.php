@@ -56,7 +56,7 @@
                      <input type="hidden" name="bottle_id" value="{{ $bottle->id }}">
                @endif
                <div
-                  class="card relative border p-4 text-sm space-y-1 {{ $selectedBottleId && ! $isSelected ? 'opacity-30' : '' }} {{ $isSelectable? 'cursor-pointer hover:border-indigo-500' : '' }}"
+                  class="card relative border p-4 text-sm space-y-1 {{ $selectedBottleId && ! $isSelected ? 'opacity-50' : '' }} {{ $isSelectable? 'cursor-pointer hover:border-indigo-500' : '' }}"
                   id="bottle-{{ $bottle->id }}"
                >
                @if ($isSelectable)
