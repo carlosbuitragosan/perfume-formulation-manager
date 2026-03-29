@@ -107,6 +107,7 @@ describe('Blend Creation (Form & Submission)', function () {
         $response = $this->from(route('blends.create'))
             ->followingRedirects()
             ->post(route('blends.store'), $payload);
+
         $crawler = crawl($response);
         expect($crawler->filter('[data-testid="error-name"]')->count())->toBe(1);
         $neroliRow = $crawler->filter('[data-testid="ingredient-row"][data-index="1"]');
@@ -546,5 +547,51 @@ describe('Bottle & Material Constraints', function () {
         $bottle->refresh();
         // Assert ingredient now has bottle_id
         expect($ingredient->bottle_id)->toBe($bottle->id);
+    });
+
+    test('When adding a new bottle with ingredient context, show success message on redirect', function () {
+        // Create material & blend + add ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $material);
+
+        // Create a bottle with ingredient context
+        $response = $this
+            ->from(route('materials.bottles.create', $material))
+            ->followingRedirects()
+            ->post(
+                route('materials.bottles.store', $material).'?ingredient='.$ingredient->id,
+                bottlePayload());
+
+        // Get HTML from redirect
+        $crawler = crawl($response);
+        $blendContainer = $crawler->filter('div[data-version="1.0"]');
+
+        // Expect message
+        expect($blendContainer->text())->toContain("Bottle assigned to {$material->name}");
+    });
+
+    test('When selecting a bottle to assign to an ingredient, show success message on redirect', function () {
+        // Create material, bottle & blend + add ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $bottle = makeBottle($material);
+        $ingredient = addIngredient($version, $material);
+
+        // Perform bottle assignment
+        $response = $this
+            ->from(route('materials.show', $material))
+            ->followingRedirects()
+            ->post(route('blend-ingredients.assign-bottle', $ingredient), [
+                'bottle_id' => $bottle->id,
+            ]);
+
+        // Get HTML from redirect
+        $crawler = crawl($response);
+        $blendContainer = $crawler->filter('div[data-version="1.0"]');
+
+        // Expect message
+        expect($blendContainer->text())->toContain("Bottle assigned to {$material->name}");
+
     });
 });

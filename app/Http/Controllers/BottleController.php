@@ -69,18 +69,22 @@ class BottleController extends Controller
             ]);
         }
 
+        // Get the blend ingredient ID from the url
         $blendIngredientId = $request->input('ingredient');
         $blendIngredient = BlendIngredient::find($blendIngredientId);
 
+        // Check blen ingredient ID exists and has no bottle assigned to it
         if ($blendIngredient && $blendIngredient->bottle_id == null) {
 
+            // Assign bottle to blend ingredient
             $blendIngredient->update([
                 'bottle_id' => $bottle->id,
             ]);
 
             $blend = $blendIngredient->BlendVersion?->blend;
 
-            return redirect()->route('blends.show', $blend);
+            return redirect()->route('blends.show', $blend)
+                ->with('ok', "Bottle assigned to {$material->name}");
         }
 
         return redirect()->route('materials.show', $material);

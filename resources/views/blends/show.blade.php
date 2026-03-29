@@ -16,7 +16,11 @@
 
    <div class="p-4 space-y-4">
       <div data-testid="blend-version" data-version="1.0" class="card p-4">
-         <div class="font-semibold mb-3">Version 1.0</div>
+         @if (session('ok'))
+            <x-flash type="warning">{{ session('ok') }}</x-flash>
+         @endif
+
+         <div class="font-semibold mb-3 pt-2">Version 1.0</div>
 
          <div class="overflow-x-auto">
             <table class="w-full text-sm border-separate border-spacing-x-3">

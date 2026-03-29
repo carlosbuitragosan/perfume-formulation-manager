@@ -31,6 +31,7 @@ class BlendIngredientController extends Controller
         }
 
         // return redirect
-        return redirect()->route('blends.show', $blend);
+        return redirect()->route('blends.show', $blend)
+            ->with('ok', "Bottle assigned to {$bottle->material->name}");
     }
 }
