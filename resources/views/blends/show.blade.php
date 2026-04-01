@@ -5,7 +5,7 @@
          <div class="flex gap-2">
             <x-link href="{{ route('blends.edit', $blend) }}">EDIT</x-link>
 
-            <form method="POST" action="" onsubmit="return confirm('Delete this material?')">
+            <form method="POST" action="" onsubmit="return confirm('Delete {{ $blend->name }}?')">
                @csrf
                @method('DELETE')
                <x-danger-button>DELETE</x-danger-button>
@@ -16,10 +16,6 @@
 
    <div class="p-4 space-y-4">
       <div data-testid="blend-version" data-version="1.0" class="card p-4">
-         @if (session('ok'))
-            <x-flash type="warning">{{ session('ok') }}</x-flash>
-         @endif
-
          <div class="font-semibold mb-3 pt-2">Version 1.0</div>
 
          <div class="overflow-x-auto">
@@ -55,6 +51,9 @@
                </tbody>
             </table>
          </div>
+         @if (session('success'))
+            <x-flash type="success">{{ session('success') }}</x-flash>
+         @endif
       </div>
    </div>
 </x-app-layout>

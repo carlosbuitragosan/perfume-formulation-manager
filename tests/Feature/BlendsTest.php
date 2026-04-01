@@ -265,8 +265,7 @@ describe('Blend Editing', function () {
                 'dilution' => 10,
             ]),
         ]);
-        $this->from(route('blends.edit', $blend))
-            ->put(route('blends.update', $blend), $payload)
+        $this->put(route('blends.update', $blend), $payload)
             ->assertRedirect(route('blends.show', $blend));
         $this->assertDatabaseHas('blends', [
             'id' => $blend->id,
@@ -416,35 +415,8 @@ describe('Database Schema', function () {
 // ==========================================================
 // Bottle & Material Constraints
 // ==========================================================
-describe('Bottle & Material Constraints', function () {
-    test('cannot delete a bottle that is assigned to a blend ingredient', function () {
-        // Create materials
-        $lavender = makeMaterial();
-        $benzoin = makeMaterial(['name' => 'Benzoin']);
+describe('blend ingredient bottle assignment', function () {
 
-        // Create bottle
-        $lavenderBottle = makeBottle($lavender);
-
-        // Create Blend
-        [$blend, $version] = makeBlendWithVersion($this->user);
-        addIngredient($version, $lavender, $lavenderBottle->id);
-
-        // Attempt delete
-        $this->from(route('materials.show', $lavender->id))
-            ->delete(route('bottles.destroy', $lavenderBottle->id));
-
-        // Assert bottle has not bee deleted
-        $this->assertDatabaseHas('bottles', [
-            'id' => $lavenderBottle->id,
-        ]);
-
-        // Relationship still intact
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'bottle_id' => $lavenderBottle->id,
-        ]);
-    });
     test('creating a bottle with ingredient context assigns it to that blend ingredient', function () {
         // Create a blend without any bottles
         $lavender = makeMaterial();
@@ -460,138 +432,5 @@ describe('Bottle & Material Constraints', function () {
 
         // Assert bottle has been assigned to the blend ingredient
         expect($lavenderIngredient->bottle_id)->not->toBe(null);
-    });
-
-    test('creating a bottle with ingredient context redirects back to the blend', function () {
-        // Create a blend without any bottles
-        $lavender = makeMaterial();
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $lavenderIngredient = addIngredient($version, $lavender);
-
-        // Post a bottle for an ingredient in the blend & assert redirect
-        postAs($this->user,
-            route('materials.bottles.store', $lavender).'?ingredient='.$lavenderIngredient->id,
-            bottlePayload())
-            ->assertRedirect(route('blends.show', $blend));
-    });
-
-    test('it shows assigned bottle message when visiting material from ingredient with bottle', function () {
-        // Create material & bottle
-        $material = makeMaterial();
-        $bottle = makeBottle($material);
-
-        // Create blend & add ingredient
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $ingredient = addIngredient($version, $material, $bottle->id);
-        $ingredient->refresh()->load('blendVersion.blend');
-
-        // Get HTML from materials.show with blend ingredient context
-        [, $crawler] = getPageCrawler($this->user, route('materials.show', $material).'?ingredient='.$ingredient->id);
-        $bottleText = $crawler->filter("div#bottle-$ingredient->bottle_id")->text();
-
-        // Assert message is visible
-        expect($bottleText)->toContain('This bottle is assigned to');
-        expect($bottleText)->toContain($material->name);
-        expect($bottleText)->toContain($blend->name);
-    });
-
-    test('material show page informs user that creating a bottle will assign it to the ingredient', function () {
-        // Create material & blend + add ingredient
-        $material = makeMaterial();
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $ingredient = addIngredient($version, $material);
-
-        // Get HTML from materials.show with blend ingredient context
-        [, $crawler] = getPageCrawler($this->user,
-            route('materials.show', $material).'?ingredient='.$ingredient->id);
-        $text = $crawler->text();
-
-        // Assert message is present
-        expect($text)->toContain('Add a new bottle');
-        expect($text)->toContain($ingredient->material->name);
-        expect($text)->toContain($blend->name);
-    });
-
-    test('When arriving from an ingredient without a bottle and bottles exist, show a message indicating the user can select one', function () {
-        // Create material & blend + add ingredient
-        $material = makeMaterial();
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $ingredient = addIngredient($version, $material);
-
-        // Create  bottle for same ingredient
-        $bottle = makeBottle($material);
-
-        // Get HTML from materials.show page
-        [, $crawler] = getPageCrawler($this->user,
-            route('materials.show', $material).'?ingredient='.$ingredient->id);
-        $text = $crawler->text();
-
-        // Assert message exists
-        expect($text)->toContain('Select one from the list below');
-    });
-
-    test('selecting a bottle assigns it to the ingredient', function () {
-        // Create material & blend + add ingredient
-        $material = makeMaterial();
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $ingredient = addIngredient($version, $material);
-
-        // Create  bottle for same ingredient
-        $bottle = makeBottle($material);
-
-        // Perform assginment request
-        postAs($this->user, route('blend-ingredients.assign-bottle', $ingredient), [
-            'bottle_id' => $bottle->id,
-        ]);
-        $ingredient->refresh();
-        $bottle->refresh();
-        // Assert ingredient now has bottle_id
-        expect($ingredient->bottle_id)->toBe($bottle->id);
-    });
-
-    test('When adding a new bottle with ingredient context, show success message on redirect', function () {
-        // Create material & blend + add ingredient
-        $material = makeMaterial();
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $ingredient = addIngredient($version, $material);
-
-        // Create a bottle with ingredient context
-        $response = $this
-            ->from(route('materials.bottles.create', $material))
-            ->followingRedirects()
-            ->post(
-                route('materials.bottles.store', $material).'?ingredient='.$ingredient->id,
-                bottlePayload());
-
-        // Get HTML from redirect
-        $crawler = crawl($response);
-        $blendContainer = $crawler->filter('div[data-version="1.0"]');
-
-        // Expect message
-        expect($blendContainer->text())->toContain("Bottle assigned to {$material->name}");
-    });
-
-    test('When selecting a bottle to assign to an ingredient, show success message on redirect', function () {
-        // Create material, bottle & blend + add ingredient
-        $material = makeMaterial();
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $bottle = makeBottle($material);
-        $ingredient = addIngredient($version, $material);
-
-        // Perform bottle assignment
-        $response = $this
-            ->from(route('materials.show', $material))
-            ->followingRedirects()
-            ->post(route('blend-ingredients.assign-bottle', $ingredient), [
-                'bottle_id' => $bottle->id,
-            ]);
-
-        // Get HTML from redirect
-        $crawler = crawl($response);
-        $blendContainer = $crawler->filter('div[data-version="1.0"]');
-
-        // Expect message
-        expect($blendContainer->text())->toContain("Bottle assigned to {$material->name}");
-
     });
 });

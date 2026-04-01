@@ -32,9 +32,9 @@
    {{-- Button to create material --}}
    <x-link href="{{ route('materials.create') }}">Add Material</x-link>
 
-   {{-- Show message when material has been added --}}
-   @if (session('ok'))
-      <x-flash>{{ session('ok') }}</x-flash>
+   {{-- Succes delete material --}}
+   @if (session('success') && ! session('material_id'))
+      <x-flash type="success">{{ session('success') }}</x-flash>
    @endif
 
    {{-- Materials list --}}
@@ -149,6 +149,10 @@
                   {{ $m->notes }}
                @endif
             </div>
+            {{-- Show message when material has been added --}}
+            @if (session('success') && session('material_id') == $m->id)
+               <x-flash type="success">{{ session('success') }}</x-flash>
+            @endif
          </div>
       @empty
          <div class="p-3 text-gray-400">No materials found.</div>

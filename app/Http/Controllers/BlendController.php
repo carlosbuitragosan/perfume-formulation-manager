@@ -164,7 +164,7 @@ class BlendController extends Controller
 
         return redirect()
             ->route('dashboard')
-            ->with('ok', 'Blend deleted.');
+            ->with('success', 'Blend deleted.');
     }
 
     public function edit(Blend $blend)

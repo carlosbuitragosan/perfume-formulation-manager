@@ -84,10 +84,12 @@ class BottleController extends Controller
             $blend = $blendIngredient->BlendVersion?->blend;
 
             return redirect()->route('blends.show', $blend)
-                ->with('ok', "Bottle assigned to {$material->name}");
+                ->with('success', "Bottle assigned to {$material->name}");
         }
 
-        return redirect()->route('materials.show', $material);
+        return redirect()->route('materials.show', $material)
+            ->with('success', 'Bottle added')
+            ->with('bottle_id', $bottle->id);
     }
 
     public function edit(Bottle $bottle)
@@ -159,7 +161,8 @@ class BottleController extends Controller
         $material = $bottle->material;
 
         return redirect(route('materials.show', $material).'#bottle-'.$bottle->id)
-            ->with('ok', 'Bottle updated');
+            ->with('success', 'Bottle updated')
+            ->with('bottle_id', $bottle->id);
     }
 
     public function finish(Bottle $bottle)
@@ -171,7 +174,7 @@ class BottleController extends Controller
 
         return redirect()
             ->route('materials.show', $bottle->material_id)
-            ->with('ok', 'Bottle marked as finished')
+            ->with('success', 'Bottle marked as finished')
             ->with('bottle_id', $bottle->id);
     }
 
@@ -201,8 +204,7 @@ class BottleController extends Controller
 
         return redirect()
             ->route('materials.show', $material)
-            ->with('ok', 'Bottle deleted')
-            ->with('bottle_id', $bottle->id);
+            ->with('success', 'Bottle deleted');
 
     }
 
@@ -212,7 +214,7 @@ class BottleController extends Controller
         $bottle->save();
 
         return redirect(route('materials.show', $bottle->material).'#bottle-'.$bottle->id)
-            ->with('ok', 'Bottle unmarked as finished')
+            ->with('success', 'Bottle unmarked as finished')
             ->with('bottle_id', $bottle->id);
     }
 }

@@ -97,7 +97,8 @@ class MaterialController extends Controller
         $material = Material::create($data);
 
         return redirect(route('materials.index').'#material-'.$material->id)
-            ->with('ok', 'Material added');
+            ->with('success', "{$material->name} added")
+            ->with('material_id', $material->id);
     }
 
     // Edit form
@@ -118,7 +119,8 @@ class MaterialController extends Controller
         $material->update($data);
 
         return redirect(route('materials.index').'#material-'.$material->id)
-            ->with('ok', 'Material updated');
+            ->with('success', "{$material->name} updated")
+            ->with('material_id', $material->id);
     }
 
     // material show page
@@ -162,7 +164,7 @@ class MaterialController extends Controller
 
         return redirect()
             ->route('materials.index')
-            ->with('ok', 'Material deleted');
+            ->with('success', "{$material->name} deleted");
 
     }
 }

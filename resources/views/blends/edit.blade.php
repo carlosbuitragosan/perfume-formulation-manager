@@ -82,6 +82,7 @@
                      type="button"
                      class="!text-[10px] !px-2 !py-1 self-end"
                      data-testid="remove-ingredient"
+                     onclick="return confirm('Remove {{ $ingredient->material->name }}?')"
                   >
                      Remove
                   </x-danger-button>

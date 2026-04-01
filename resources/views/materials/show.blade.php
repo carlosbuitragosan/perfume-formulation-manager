@@ -20,9 +20,9 @@
             </p>
 
             <ul class="mt-2 list-disc list-inside">
-               <li>Add a new bottle</li>
+               <li>Click "Add Bottle"</li>
                @if ($material->bottles->isNotEmpty())
-                  <li>Select one from the list below</li>
+                  <li>Or select one from the list below</li>
                @endif
             </ul>
          </x-flash>
@@ -35,9 +35,8 @@
       </x-link>
 
       {{-- Succes delete bottle --}}
-
-      @if (session('ok') && ! session('bottle_id'))
-         <x-flash>{{ session('ok') }}</x-flash>
+      @if (session('success') && ! session('bottle_id'))
+         <x-flash type="success">{{ session('success') }}</x-flash>
       @endif
 
       {{-- Stock --}}
@@ -213,8 +212,8 @@
                @endif
 
                {{-- Succes update message --}}
-               @if (session('ok') && session('bottle_id') == $bottle->id)
-                  <x-flash>{{ session('ok') }}</x-flash>
+               @if (session('success') && session('bottle_id') == $bottle->id)
+                  <x-flash type="success">{{ session('success') }}</x-flash>
                @endif
             </div>
             @if ($isSelectable)

@@ -206,7 +206,7 @@
          <form
             method="POST"
             action="{{ route('materials.destroy', $material) }}"
-            onsubmit="return confirm('Delete this material?')"
+            onsubmit='return confirm("Delete {{ $material->name }}?")'
          >
             @csrf
             @method('DELETE')

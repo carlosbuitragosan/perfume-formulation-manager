@@ -94,6 +94,58 @@ describe('Bottle creation', function () {
         $ingredient->refresh();
         expect($ingredient->bottle_id)->toBe($bottle1->id);
     });
+
+    test('shows success message when creating a bottle', function () {
+        // post new bottle
+        $response = $this
+            ->followingRedirects()
+            ->post(
+                route('materials.bottles.store', $this->material),
+                bottlePayload()
+            );
+
+        // Find bottle in DB
+        $bottle = Bottle::where('material_id', $this->material->id)->latest()->first();
+
+        // Get HTML from materials.show page for that specific bottle
+        $crawler = crawl($response);
+        $bottleContainer = $crawler->filter("div#bottle-{$bottle->id}");
+
+        // Assert success message
+        expect($bottleContainer->text())->toContain('Bottle added');
+    });
+
+    test('When creating a new bottle with ingredient context, show success message on redirect', function () {
+        // Create blend + add ingredient
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material);
+
+        // Create a bottle with ingredient context
+        $response = $this
+            ->followingRedirects()
+            ->post(
+                route('materials.bottles.store', $this->material).'?ingredient='.$ingredient->id,
+                bottlePayload());
+
+        // Get HTML from redirect
+        $crawler = crawl($response);
+        $blendContainer = $crawler->filter('div[data-version="1.0"]');
+
+        // Expect message
+        expect($blendContainer->text())->toContain("Bottle assigned to {$this->material->name}");
+    });
+
+    test('creating a bottle with ingredient context redirects back to the blend', function () {
+        // Create a blend without any bottles
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material);
+
+        // Post a bottle for an ingredient in the blend & assert redirect
+        postAs($this->user,
+            route('materials.bottles.store', $this->material).'?ingredient='.$ingredient->id,
+            bottlePayload())
+            ->assertRedirect(route('blends.show', $blend));
+    });
 });
 
 describe('Bottle display', function () {
@@ -367,6 +419,58 @@ describe('Bottle editing', function () {
         expect($unfinishForm->count())->toBe(1);
         expect($unfinishForm->filter('button')->text())->toContain('Unmark finished');
     });
+
+    test('Shows success message when updating a bottle', function () {
+        // Create bottle
+        $bottle = makeBottle($this->material);
+        $bottle->refresh();
+        // Post update following redirect
+        $response = $this
+            ->followingRedirects()
+            ->patch(route('bottles.update', $bottle), bottlePayload());
+
+        // Get HTML for bottle container from response
+        $crawler = crawl($response);
+        $bottleContainer = $crawler->filter("div#bottle-{$bottle->id}");
+
+        // Assert message
+        expect($crawler->text())->toContain($this->material->name);
+        expect($bottleContainer->text())->toContain('Bottle updated');
+    });
+
+    test('shows success message when marking a bottle as finished', function () {
+        // Create bottle
+        $bottle = makeBottle($this->material);
+
+        // Post finish bottle and get response
+        $response = $this
+            ->followingRedirects()
+            ->post(route('bottles.finish', $bottle));
+
+        // Get bottle container from response
+        $crawler = crawl($response);
+        $bottleContainer = $crawler->filter("div#bottle-{$bottle->id}");
+
+        // Assert message
+        expect($bottleContainer->text())->toContain('Bottle marked as finished');
+    });
+
+    test('shows success message when unmarking a bottle as finished', function () {
+        // Create bottle
+        $bottle = makeBottle($this->material);
+
+        // Post finish bottle and get response
+        $response = $this
+            ->followingRedirects()
+            ->post(route('bottles.unfinish', $bottle));
+
+        // Get bottle container from response
+        $crawler = crawl($response);
+        $bottleContainer = $crawler->filter("div#bottle-{$bottle->id}");
+
+        // Assert message
+        expect($bottleContainer->text())->toContain('Bottle unmarked as finished');
+    });
 });
 
 describe('Bottle deletion', function () {
@@ -411,6 +515,50 @@ describe('Bottle deletion', function () {
         Storage::disk('public')->assertMissing($file1->path);
         Storage::disk('public')->assertMissing($file2->path);
     });
+
+    test('cannot delete a bottle that is assigned to a blend ingredient', function () {
+        // Create materials
+        $benzoin = makeMaterial(['name' => 'Benzoin']);
+
+        // Create bottle
+        $bottle = makeBottle($this->material);
+
+        // Create Blend
+        [$blend, $version] = makeBlendWithVersion($this->user);
+        addIngredient($version, $this->material, $bottle->id);
+
+        // Attempt delete
+        $this->delete(route('bottles.destroy', $bottle->id));
+
+        // Assert bottle has not bee deleted
+        $this->assertDatabaseHas('bottles', [
+            'id' => $bottle->id,
+        ]);
+
+        // Relationship still intact
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $this->material->id,
+            'bottle_id' => $bottle->id,
+        ]);
+    });
+
+    test('shows global success message when deleting a bottle', function () {
+        // Create bottle
+        $bottle = makeBottle($this->material);
+
+        // Delete bottle and get response with redirect
+        $response = $this
+            ->followingRedirects()
+            ->delete(route('bottles.destroy', $bottle));
+
+        // Get HTML from response
+        $crawler = crawl($response);
+
+        // Assert page has message
+        expect($crawler->text())->toContain('Bottle deleted');
+    });
+
 });
 
 describe('Bottle files', function () {
@@ -534,5 +682,64 @@ describe('Bottle files', function () {
         foreach ($files as $row) {
             Storage::disk('public')->assertExists($row->path);
         }
+    });
+});
+
+describe('bottle assignment', function () {
+    test('When selecting a bottle to assign to an ingredient, show success message on redirect', function () {
+        // Create bottle & blend + add ingredient
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $bottle = makeBottle($this->material);
+        $ingredient = addIngredient($version, $this->material);
+
+        // Perform bottle assignment
+        $response = $this
+            ->followingRedirects()
+            ->post(route('blend-ingredients.assign-bottle', $ingredient), [
+                'bottle_id' => $bottle->id,
+            ]);
+
+        // Get HTML from redirect
+        $crawler = crawl($response);
+        $blendContainer = $crawler->filter('div[data-version="1.0"]');
+
+        // Expect message
+        expect($blendContainer->text())->toContain("Bottle assigned to {$this->material->name}");
+
+    });
+
+    test('selecting a bottle assigns it to the ingredient', function () {
+        // Create  blend + add ingredient
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material);
+
+        // Create  bottle for same ingredient
+        $bottle = makeBottle($this->material);
+
+        // Perform assginment request
+        postAs($this->user, route('blend-ingredients.assign-bottle', $ingredient), [
+            'bottle_id' => $bottle->id,
+        ]);
+        $ingredient->refresh();
+        $bottle->refresh();
+        // Assert ingredient now has bottle_id
+        expect($ingredient->bottle_id)->toBe($bottle->id);
+    });
+
+    test('When arriving from an ingredient without a bottle and bottles exist, show a message indicating the user can select one', function () {
+        // Create blend + add ingredient
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material);
+
+        // Create  bottle for same ingredient
+        $bottle = makeBottle($this->material);
+
+        // Get HTML from materials.show page
+        [, $crawler] = getPageCrawler($this->user,
+            route('materials.show', $this->material).'?ingredient='.$ingredient->id);
+        $text = $crawler->text();
+
+        // Assert message exists
+        expect($text)->toContain('Or select one from the list below');
     });
 });

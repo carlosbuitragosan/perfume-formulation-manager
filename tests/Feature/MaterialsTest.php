@@ -184,6 +184,22 @@ describe('creating materials', function () {
         $material = Material::where('name', $payload['name'])->first();
         expect($material->families)->toEqualCanonicalizing(['creamy', 'camphorous', 'musky', 'earthy']);
     });
+
+    test('shows success message when creating a new material', function () {
+        // Post a new material
+        $response = $this
+            ->followingRedirects()
+            ->post(route('materials.store'), materialPayload());
+
+        $material = Material::latest()->first();
+
+        // Get the HTML from the redirect
+        $crawler = crawl($response);
+        $materialContainer = $crawler->filter("div#material-{$material->id}");
+
+        // Assert material created
+        expect($materialContainer->text())->toContain("{$material->name} added");
+    });
 });
 
 describe('editing materials', function () {
@@ -196,7 +212,41 @@ describe('editing materials', function () {
             ->assertSee('Lavender')
             ->assertSee('Lavandula Angustifolia');
     });
-    // ... rest of tests from editing materials ...
+
+    test('shows success message when editing a material', function () {
+        // Create material
+        $material = makeMaterial();
+
+        // Post and update with redirect
+        $response = $this
+            ->followingRedirects()
+            ->patch(route('materials.update', $material), materialPayload(['notes' => '']));
+
+        // Get HTML content for the material div
+        $crawler = crawl($response);
+        $materialContainer = $crawler->filter("div#material-{$material->id}");
+
+        // Assert message
+        expect($materialContainer->text())->toContain("{$material->name} updated");
+    });
+});
+
+describe('deleting materials', function () {
+    test('shows success message when deleting a material', function () {
+        // Create material
+        $material = makeMaterial();
+
+        // delete a material through request with redirects
+        $response = $this
+            ->followingRedirects()
+            ->delete(route('materials.destroy', $material));
+
+        // Get HTML for index page
+        $crawler = crawl($response);
+
+        // Assert message
+        expect($crawler->text())->toContain("{$material->name} deleted");
+    });
 });
 
 describe('materials index listing and navigation', function () {
@@ -220,28 +270,65 @@ describe('search and filtering', function () {
             ->assertSee('name="query"', false)
             ->assertSee('type="search"', false);
     });
+});
 
-    describe('materials show page', function () {
-        test('materials show highlights the assigned bottle for a blend ingredient', function () {
-            // Create a material, 2 bottles for 1 ingredient & blend
-            $lavender = makeMaterial();
-            $lavenderBottle1 = makeBottle($lavender);
-            [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-            $lavenderIngredient = addIngredient($version, $lavender, $lavenderBottle1->id);
-            $lavenderBottle2 = makeBottle($lavender);
+describe('materials show page', function () {
+    test('materials show highlights the assigned bottle for a blend ingredient', function () {
+        // Create a material, 2 bottles for 1 ingredient & blend
+        $lavender = makeMaterial();
+        $lavenderBottle1 = makeBottle($lavender);
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $lavenderIngredient = addIngredient($version, $lavender, $lavenderBottle1->id);
+        $lavenderBottle2 = makeBottle($lavender);
 
-            // Get materials show page HTML with query parameter from blend ingredient ID
-            [, $crawler] = getPageCrawler(
-                $this->user,
-                route('materials.show', $lavender).'?ingredient='.$lavenderIngredient->id
-            );
+        // Get materials show page HTML with query parameter from blend ingredient ID
+        [, $crawler] = getPageCrawler(
+            $this->user,
+            route('materials.show', $lavender).'?ingredient='.$lavenderIngredient->id
+        );
 
-            $bottle1 = $crawler->filter('#bottle-'.$lavenderBottle1->id);
-            $bottle2 = $crawler->filter('#bottle-'.$lavenderBottle2->id);
+        $bottle1 = $crawler->filter('#bottle-'.$lavenderBottle1->id);
+        $bottle2 = $crawler->filter('#bottle-'.$lavenderBottle2->id);
 
-            // Assert opacity
-            expect($bottle1->attr('class'))->not->toContain('opacity-30');
-            expect($bottle2->attr('class'))->toContain('opacity-30');
-        });
+        // Assert opacity
+        expect($bottle1->attr('class'))->not->toContain('opacity-30');
+        expect($bottle2->attr('class'))->toContain('opacity-50');
+    });
+
+    test('material show page informs user that creating a bottle will assign it to the ingredient', function () {
+        // Create material & blend + add ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $material);
+
+        // Get HTML from materials.show with blend ingredient context
+        [, $crawler] = getPageCrawler($this->user,
+            route('materials.show', $material).'?ingredient='.$ingredient->id);
+        $text = $crawler->text();
+
+        // Assert message is present
+        expect($text)->toContain('Click "Add Bottle"');
+        expect($text)->toContain($ingredient->material->name);
+        expect($text)->toContain($blend->name);
+    });
+
+    test('it shows assigned bottle message when visiting material from ingredient with bottle', function () {
+        // Create material & bottle
+        $material = makeMaterial();
+        $bottle = makeBottle($material);
+
+        // Create blend & add ingredient
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $material, $bottle->id);
+        $ingredient->refresh()->load('blendVersion.blend');
+
+        // Get HTML from materials.show with blend ingredient context
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $material).'?ingredient='.$ingredient->id);
+        $bottleText = $crawler->filter("div#bottle-$ingredient->bottle_id")->text();
+
+        // Assert message is visible
+        expect($bottleText)->toContain('This bottle is assigned to');
+        expect($bottleText)->toContain($material->name);
+        expect($bottleText)->toContain($blend->name);
     });
 });
