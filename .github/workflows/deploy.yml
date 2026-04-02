@@ -28,6 +28,9 @@ jobs:
           php artisan key:generate
           touch database/database.sqlite
 
+          mkdir -p storage/framework/{cache,sessions,views}
+          mkdir -p bootstrap/cache
+
       - name: Run migrations
         run: php artisan migrate
 
