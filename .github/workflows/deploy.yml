@@ -19,15 +19,18 @@ jobs:
           extensions: mbstring, bcmath, sqlite
           coverage: none
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
-
+      # ✅ ENV must exist BEFORE composer install
       - name: Prepare environment
         run: |
           cp .env.example .env
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Generate key and setup
+        run: |
           php artisan key:generate
           touch database/database.sqlite
-
           mkdir -p storage/framework/{cache,sessions,views}
           mkdir -p bootstrap/cache
 
@@ -60,6 +63,7 @@ jobs:
             composer install --no-dev --optimize-autoloader
 
             mkdir -p storage/framework/{cache,sessions,views}
+            mkdir -p bootstrap/cache
             chown -R www-data:www-data storage bootstrap/cache
             chmod -R 775 storage bootstrap/cache
 
