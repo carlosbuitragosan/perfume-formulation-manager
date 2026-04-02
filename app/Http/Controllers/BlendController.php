@@ -118,7 +118,9 @@ class BlendController extends Controller
             ]);
         }
 
-        return redirect()->route('blends.show', $blend);
+        return redirect()->route('blends.show', $blend)
+            ->with('success', "{$blend->name} added")
+            ->with('blend_id', $blend->id);
     }
 
     public function show(Blend $blend)

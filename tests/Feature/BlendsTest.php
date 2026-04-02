@@ -114,6 +114,27 @@ describe('Blend Creation (Form & Submission)', function () {
         expect($neroliRow->count())->toBe(1);
         expect($neroliRow->filter('[data-testid="error-materials.1.drops"]')->count())->toBe(1);
     });
+
+    test('Creating new blend shows success message', function () {
+        // create materials
+        $material1 = makeMaterial();
+        $material2 = makeMaterial(['name' => 'petitgrain']);
+        $ingredients = [ingredient($material1), ingredient($material2)];
+
+        // Send request to create message and follow redirects
+        $response = $this
+            ->from(route('blends.create'))
+            ->followingRedirects()
+            ->post(route('blends.store'),
+                blendPayload('test blend', $ingredients));
+
+        // Get HTML for vesion container
+        $response = crawl($response);
+        $versionContainer = $response->filter('div[data-testId="blend-version"]')->first();
+
+        // Assert success message
+        expect($versionContainer->text())->toContain('test blend added');
+    });
 });
 
 // ==========================================================
