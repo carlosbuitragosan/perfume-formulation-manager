@@ -10,6 +10,10 @@
          <x-link href="{{ route('blends.create') }}">Create Blend</x-link>
       </div>
 
+      @if (session('success'))
+         <x-flash type="success">{{ session('success') }}</x-flash>
+      @endif
+
       @if ($blends->isNotEmpty())
          <div class="space-y-3">
             @foreach ($blends as $blend)

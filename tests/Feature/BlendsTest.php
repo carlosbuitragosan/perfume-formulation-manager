@@ -220,6 +220,41 @@ describe('Blend Deletion', function () {
             'id' => $blend->id,
         ]);
     });
+
+    test('show confirmation message when attempting to delete a blend', function () {
+        // Create a blend
+        [$blend] = makeBlendWithVersion($this->user, 'Blend');
+
+        // Get HTML from blends show page for the delete form
+        [, $crawler] = getPagecrawler($this->user, route('blends.show', $blend));
+        $form = $crawler
+            ->selectButton('DELETE')
+            ->ancestors()
+            ->filter('form')
+            ->first();
+        $onsubmit = $form->attr('onsubmit');
+
+        // Assert confirmation
+        expect($onsubmit)->toContain("Delete {$blend->name}?");
+
+    });
+
+    test('shows confirmation when a blend has been deleted', function () {
+        // Create blend
+        [$blend] = makeBlendWithVersion($this->user, 'Test Blend');
+
+        // Send request to delete blend following redirects
+        $response = $this
+            ->from(route('blends.show', $blend))
+            ->followingRedirects()
+            ->delete(route('blends.show', $blend));
+
+        // Get HTML from the blends dashboard
+        $crawler = crawl($response);
+
+        // Assert message
+        expect($crawler->text())->toContain("{$blend->name} deleted");
+    });
 });
 
 // ==========================================================
