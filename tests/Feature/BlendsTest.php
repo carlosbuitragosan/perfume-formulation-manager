@@ -437,6 +437,32 @@ describe('Blend Editing', function () {
             'bottle_id' => null,
         ]);
     });
+
+    test('Updating a blend shows success message', function () {
+        // Create materials & blend
+        $material1 = makeMaterial();
+        $material2 = makeMaterial(['name' => 'neroli']);
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test');
+
+        // Send request to update blend
+        $response = $this
+            ->from(route('blends.show', $blend))
+            ->followingRedirects()
+            ->patch(route('blends.update', $blend),
+                blendPayload('Test 2', [
+                    ingredient($material1),
+                    ingredient($material2),
+                ])
+            );
+
+        // Get HTML from version container
+        $crawler = crawl($response);
+        $versionContainer = $crawler->filter('div[data-testId="blend-version"]');
+        $blend->refresh();
+
+        // Assert message
+        expect($crawler->text())->toContain("{$blend->name} updated");
+    });
 });
 
 // ==========================================================

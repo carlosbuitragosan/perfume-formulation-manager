@@ -109,10 +109,9 @@ describe('Bottle creation', function () {
 
         // Get HTML from materials.show page for that specific bottle
         $crawler = crawl($response);
-        $bottleContainer = $crawler->filter("div#bottle-{$bottle->id}");
 
         // Assert success message
-        expect($bottleContainer->text())->toContain('Bottle added');
+        expect($crawler->text())->toContain('Bottle added');
     });
 
     test('When creating a new bottle with ingredient context, show success message on redirect', function () {

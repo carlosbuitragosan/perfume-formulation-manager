@@ -295,6 +295,8 @@ class BlendController extends Controller
             ]);
         }
 
-        return redirect()->route('blends.show', $blend);
+        return redirect()->route('blends.show', $blend)
+            ->with('success', "{$blend->name} updated")
+            ->with('blend_id', $blend->id);
     }
 }

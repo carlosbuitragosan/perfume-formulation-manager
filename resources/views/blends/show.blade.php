@@ -51,7 +51,7 @@
                </tbody>
             </table>
          </div>
-         @if (session('success') && session('blend_id'))
+         @if (session('success'))
             <x-flash type="success">{{ session('success') }}</x-flash>
          @endif
       </div>

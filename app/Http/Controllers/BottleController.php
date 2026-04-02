@@ -84,12 +84,12 @@ class BottleController extends Controller
             $blend = $blendIngredient->BlendVersion?->blend;
 
             return redirect()->route('blends.show', $blend)
-                ->with('success', "Bottle assigned to {$material->name}");
+                ->with('success', "Bottle assigned to {$material->name}")
+                ->with('blend_id', $blend->id);
         }
 
         return redirect()->route('materials.show', $material)
-            ->with('success', 'Bottle added')
-            ->with('bottle_id', $bottle->id);
+            ->with('success', 'Bottle added');
     }
 
     public function edit(Bottle $bottle)
