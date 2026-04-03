@@ -13,7 +13,8 @@ npm-debug.log*
 yarn-error.log*
 .DS_Store
 Thumbs.db
-.env.*
+.env
+.env.testing
 _ide_helper.php
 _ide_helper_models.php
 .phpstorm.meta.php
