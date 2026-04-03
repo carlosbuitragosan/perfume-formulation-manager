@@ -19,10 +19,12 @@ jobs:
           extensions: mbstring, bcmath, sqlite
           coverage: none
 
-      # ✅ ENV must exist BEFORE composer install
+      # ✅ Create .env + folders BEFORE installation
       - name: Prepare environment
         run: |
           cp .env.example .env
+          mkdir -p storage/framework/{cache,sessions,views}
+          mkdir -p bootstrap/cache
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
@@ -31,8 +33,6 @@ jobs:
         run: |
           php artisan key:generate
           touch database/database.sqlite
-          mkdir -p storage/framework/{cache,sessions,views}
-          mkdir -p bootstrap/cache
 
       - name: Run migrations
         run: php artisan migrate
@@ -48,8 +48,8 @@ jobs:
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          host: 187.77.177.77
+          username: root
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/perfume-formulation-manager
