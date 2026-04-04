@@ -21,7 +21,7 @@
 
             <ul class="mt-2 list-disc list-inside">
                <li>Click "Add Bottle"</li>
-               @if ($material->bottles->isNotEmpty())
+               @if ($material->bottles->where('is_finished', false)->isNotEmpty())
                   <li>Or select one from the list below</li>
                @endif
             </ul>
@@ -38,14 +38,19 @@
       @if (session('success') && ! session('bottle_id'))
          <x-flash type="success">{{ session('success') }}</x-flash>
       @endif
+      @php
+         $bottles = $blendIngredient
+         ? $material->bottles->where('is_finished', false)
+         : $material->bottles;
+      @endphp
 
       {{-- Stock --}}
       <div class="flex flex-col gap-2">
-         @forelse ($material->bottles as $bottle)
+         @forelse ($bottles as $bottle)
             @php
                $enum = ExtractionMethod::tryFrom((string) $bottle->method);
                $isSelected = $bottle->id === $selectedBottleId;
-               $isSelectable = $blendIngredient && ! $selectedBottleId && ! $bottle->is_finished;
+               $isSelectable = $blendIngredient && ! $selectedBottleId;
             @endphp
 
             {{-- Wrap the bottle card in a form  to allow selection --}}

@@ -741,4 +741,41 @@ describe('bottle assignment', function () {
         // Assert message exists
         expect($text)->toContain('Or select one from the list below');
     });
+
+    test('does not show “select from list” when only finished bottles exist', function () {
+        // Create bottle + mark finished
+        $bottle = makeBottle($this->material);
+        $bottle->is_finished = true;
+        $bottle->save();
+
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material);
+
+        // Get HTML from the materials.show
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material).'?ingredient='.$ingredient->id);
+
+        // Assert message
+        expect($crawler->text())->toContain($this->material->name);
+        expect($crawler->text())->not->toContain('Or select one from the list below');
+    });
+
+    test('when selcting bottles for an ingredient, finsihed bottles are not displayed', function () {
+        // Create bottle + mark finished
+        $bottle = makeBottle($this->material);
+        $bottle->is_finished = true;
+        $bottle->save();
+
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        $ingredient = addIngredient($version, $this->material);
+
+        // Get HTML from the materials.show for bottle container
+        [, $crawler] = getPageCrawler($this->user, route('materials.show', $this->material).'?ingredient='.$ingredient->id);
+        $bottleContainer = $crawler->filter("div#bottle-{$bottle->id}");
+
+        // Assert bottle not displayed
+        expect($crawler->text())->toContain($this->material->name);
+        expect($bottleContainer->count())->toBe(0);
+    });
 });
