@@ -21,6 +21,12 @@ class BlendIngredientController extends Controller
 
         // Assign bottle to ingredient
         $bottle = Bottle::findOrFail($data['bottle_id']);
+        if ($bottle->is_finished) {
+            return redirect()
+                ->back()
+                ->with('error', 'Cannot assign a finished bottle')
+                ->with('bottle_id', $bottle->id);
+        }
         if (
             ! $blendIngredient->bottle_id &&
         $blendIngredient->material_id === $bottle->material_id

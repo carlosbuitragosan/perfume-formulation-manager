@@ -247,6 +247,30 @@ describe('deleting materials', function () {
         // Assert message
         expect($crawler->text())->toContain("{$material->name} deleted");
     });
+
+    test('cannot be deleted if listed in a blend', function () {
+        // Create material & blend + ingredient
+        $material = makeMaterial();
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+        addIngredient($version, $material);
+
+        // Send request from blends.edit  to materials.destroy + follow redirect
+        $response = $this
+            ->from(route('materials.edit', $material))
+            ->followingRedirects()
+            ->delete(route('materials.destroy', $material));
+
+        // Get HTML from response
+        $crawler = crawl($response);
+
+        // Check material still exists in DB
+        $this->assertDatabaseHas('materials', [
+            'id' => $material->id,
+        ]);
+
+        // Assert response contains error message
+        expect($crawler->text())->toContain("{$material->name} is in use and cannot be deleted");
+    });
 });
 
 describe('materials index listing and navigation', function () {

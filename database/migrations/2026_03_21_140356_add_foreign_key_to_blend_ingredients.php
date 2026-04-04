@@ -17,16 +17,19 @@ return new class extends Migration
             }
 
             // Recreate with correct names
+            // If a version is deleted -> delete all ingredients
             $table->foreign('blend_version_id')
                 ->references('id')
                 ->on('blend_versions')
                 ->cascadeOnDelete();
 
+            // If a material is deleted -> delete all ingredients
             $table->foreign('material_id')
                 ->references('id')
                 ->on('materials')
                 ->cascadeOnDelete();
 
+            // If a bottle is deleted -> restrict if assigned to blend ingredient
             $table->foreign('bottle_id')
                 ->references('id')
                 ->on('bottles')

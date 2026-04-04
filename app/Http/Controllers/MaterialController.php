@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BlendIngredient;
 use App\Models\Material;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -160,11 +161,17 @@ class MaterialController extends Controller
 
     public function destroy(Material $material)
     {
-        $material->delete();
+        try {
+            $material->delete();
 
-        return redirect()
-            ->route('materials.index')
-            ->with('success', "{$material->name} deleted");
+            return redirect()
+                ->route('materials.index')
+                ->with('success', "{$material->name} deleted");
+        } catch (QueryException $e) {
+            return redirect()
+                ->route('materials.edit', $material)
+                ->with('error', "{$material->name} is in use and cannot be deleted");
+        }
 
     }
 }

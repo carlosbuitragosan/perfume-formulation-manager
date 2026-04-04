@@ -67,4 +67,9 @@ class Material extends Model
     {
         return $this->hasMany(Bottle::class);
     }
+
+    public function blendIngredients()
+    {
+        return $this->hasMany(BlendIngredient::class);
+    }
 }
