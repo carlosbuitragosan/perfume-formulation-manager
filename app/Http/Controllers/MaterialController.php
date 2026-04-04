@@ -127,25 +127,6 @@ class MaterialController extends Controller
     // material show page
     public function show(Material $material)
     {
-        $material->load([
-            'bottles' => function ($query) {
-                // EXISTS (
-                //     SELECT 1
-                //     FROM blend_ingredients
-                //     WHERE blend_ingredients.bottle_id = bottles.id
-                // )
-                $query
-                // Add a virtual "is_used" flag: true if this bottle is referenced by any blend ingredients
-                    ->withExists(['usages as is_used'])
-                    // Sort used bottles first (true = 1, false = 0)
-                    ->orderByDesc('is_used')
-                    // Then prioritise unfinished bottles (false before true)
-                    ->orderBy('is_finished')
-                    // Then sort most recently updated bottles first within each group
-                    ->orderByDesc('updated_at');
-            },
-            'bottles.files']);
-
         // GET request, data is in url
         $blendIngredientId = request('ingredient');
         $selectedBottleId = null;
@@ -156,7 +137,14 @@ class MaterialController extends Controller
             $selectedBottleId = $blendIngredient?->bottle_id;
         }
 
-        return view('materials.show', compact('material', 'selectedBottleId', 'blendIngredient'));
+        $bottles = $material->bottlesFor($blendIngredient);
+
+        return view('materials.show', compact(
+            'material',
+            'selectedBottleId',
+            'blendIngredient',
+            'bottles'
+        ));
     }
 
     public function destroy(Material $material)

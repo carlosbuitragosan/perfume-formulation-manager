@@ -72,4 +72,22 @@ class Material extends Model
     {
         return $this->hasMany(BlendIngredient::class);
     }
+
+    public function bottlesFor(?BlendIngredient $blendIngredient)
+    {
+        return $this->bottles()
+            // Add a virtual "is_used" flag: true if this bottle is referenced by any blend ingredients
+            ->withExists(['usages as is_used'])
+            ->when($blendIngredient, function ($query) {
+                $query->where('is_finished', false);
+            })
+            // Sort used bottles first (true = 1, false = 0)
+            ->orderByDesc('is_used')
+            // Then sort most recently updated bottles first within each group
+            ->orderBy('is_finished')
+            // Then sort most recently updated bottles first within each group
+            ->orderByDesc('updated_at')
+            ->with('files')
+            ->get();
+    }
 }

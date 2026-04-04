@@ -49,7 +49,7 @@ Route::middleware('auth')
             ->only(['create', 'store', 'show', 'destroy', 'edit', 'update']);
 
         // Blend ingredients
-        Route::post('/blend-ingredients/{blendIngredient}/assign-bottle',
+        Route::post('/blend-ingredients/{blendIngredient}/bottles/{bottle}',
             [BlendIngredientController::class, 'assignBottle'])
             ->name('blend-ingredients.assign-bottle');
     });

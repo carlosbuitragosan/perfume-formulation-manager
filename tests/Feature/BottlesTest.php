@@ -694,9 +694,7 @@ describe('bottle assignment', function () {
         // Perform bottle assignment
         $response = $this
             ->followingRedirects()
-            ->post(route('blend-ingredients.assign-bottle', $ingredient), [
-                'bottle_id' => $bottle->id,
-            ]);
+            ->post(route('blend-ingredients.assign-bottle', [$ingredient, $blend]));
 
         // Get HTML from redirect
         $crawler = crawl($response);
@@ -710,17 +708,16 @@ describe('bottle assignment', function () {
     test('selecting a bottle assigns it to the ingredient', function () {
         // Create  blend + add ingredient
         [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-        $ingredient = addIngredient($version, $this->material);
+        $ingredient = addIngredient($version, $this->material, null);
 
         // Create  bottle for same ingredient
         $bottle = makeBottle($this->material);
 
         // Perform assginment request
-        postAs($this->user, route('blend-ingredients.assign-bottle', $ingredient), [
-            'bottle_id' => $bottle->id,
-        ]);
+        postAs($this->user, route('blend-ingredients.assign-bottle', [$ingredient, $bottle]));
         $ingredient->refresh();
         $bottle->refresh();
+
         // Assert ingredient now has bottle_id
         expect($ingredient->bottle_id)->toBe($bottle->id);
     });

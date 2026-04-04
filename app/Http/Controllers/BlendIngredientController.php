@@ -4,39 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\BlendIngredient;
 use App\Models\Bottle;
-use Illuminate\Http\Request;
 
 class BlendIngredientController extends Controller
 {
-    public function assignBottle(Request $request, BlendIngredient $blendIngredient)
+    public function assignBottle(BlendIngredient $blendIngredient, Bottle $bottle)
     {
         $blend = $blendIngredient->blendVersion->blend;
 
-        abort_unless($blend->user_id === auth()->id(), 404);
+        // Authorize user from app/Policies/BlendPolicy
+        $this->authorize('update', $blend);
 
-        // Validate request
-        $data = $request->validate([
-            'bottle_id' => ['required', 'integer', 'exists:bottles,id'],
-        ]);
+        // See Models/BlendIngredient for logic
+        $isBottleAssigned = $blendIngredient->assignBottle($bottle);
 
-        // Assign bottle to ingredient
-        $bottle = Bottle::findOrFail($data['bottle_id']);
-        if ($bottle->is_finished) {
+        if (! $isBottleAssigned) {
             return redirect()
                 ->back()
                 ->with('error', 'Cannot assign a finished bottle')
                 ->with('bottle_id', $bottle->id);
         }
-        if (
-            ! $blendIngredient->bottle_id &&
-        $blendIngredient->material_id === $bottle->material_id
-        ) {
-            $blendIngredient->update([
-                'bottle_id' => $data['bottle_id'],
-            ]);
-        }
 
-        // return redirect
         return redirect()->route('blends.show', $blend)
             ->with('success', "Bottle assigned to {$bottle->material->name}")
             ->with('blend_id', $blend->id);

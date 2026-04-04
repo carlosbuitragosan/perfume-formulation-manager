@@ -31,4 +31,23 @@ class BlendIngredient extends Model
     {
         return $this->belongsTo(Bottle::class);
     }
+
+    public function assignBottle(Bottle $bottle): bool
+    {
+        if ($bottle->is_finished) {
+            return false;
+        }
+
+        if (
+            $this->bottle_id ||
+            $this->material_id !== $bottle->material_id
+        ) {
+            return false;
+        }
+        $this->update([
+            'bottle_id' => $bottle->id,
+        ]);
+
+        return true;
+    }
 }

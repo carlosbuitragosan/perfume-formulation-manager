@@ -38,11 +38,6 @@
       @if (session('success') && ! session('bottle_id'))
          <x-flash type="success">{{ session('success') }}</x-flash>
       @endif
-      @php
-         $bottles = $blendIngredient
-         ? $material->bottles->where('is_finished', false)
-         : $material->bottles;
-      @endphp
 
       {{-- Stock --}}
       <div class="flex flex-col gap-2">
@@ -55,7 +50,7 @@
 
             {{-- Wrap the bottle card in a form  to allow selection --}}
                @if ($isSelectable)
-                  <form method="POST"action="{{ route('blend-ingredients.assign-bottle', $blendIngredient) }}">
+                  <form method="POST"action="{{ route('blend-ingredients.assign-bottle', [$blendIngredient, $bottle]) }}">
                      @csrf
                      <input type="hidden" name="bottle_id" value="{{ $bottle->id }}">
                @endif

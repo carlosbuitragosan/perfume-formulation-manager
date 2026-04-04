@@ -24,6 +24,7 @@ class BottleFactory extends Factory
             'density' => 0.912,
             'price' => 4.99,
             'notes' => 'test notes',
+            'is_finished' => false,
         ];
     }
 }
