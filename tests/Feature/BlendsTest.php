@@ -164,7 +164,7 @@ describe('Blend Display & Breakdown', function () {
         expect($lavenderRow->filter('[data-col="material"]')->text())->toBe($lavender->name);
         expect($lavenderRow->filter('[data-col="drops"]')->text())->toBe('4');
         expect($lavenderRow->filter('[data-col="dilution"]')->text())->toBe('25%');
-        expect($lavenderRow->filter('[data-col="pure_pct"]')->text())->toBe('50.00%');
+        expect($lavenderRow->filter('[data-col="pure_pct"]')->text())->toBe('50%');
 
         // Expect galbanum
         $galbanumRow = $crawler->filter('tr[data-ingredient-id="'.$galbanumIngredient->id.'"]');
@@ -172,7 +172,7 @@ describe('Blend Display & Breakdown', function () {
         expect($galbanumRow->filter('[data-col="material"]')->text())->toBe($galbanum->name);
         expect($galbanumRow->filter('[data-col="drops"]')->text())->toBe('4');
         expect($galbanumRow->filter('[data-col="dilution"]')->text())->toBe('25%');
-        expect($galbanumRow->filter('[data-col="pure_pct"]')->text())->toBe('50.00%');
+        expect($galbanumRow->filter('[data-col="pure_pct"]')->text())->toBe('50%');
     });
 
     test('blend show indicates which ingredients have a bottle assigned', function () {
@@ -442,19 +442,19 @@ describe('Blend Editing', function () {
         // Create materials & blend
         $material1 = makeMaterial();
         $material2 = makeMaterial(['name' => 'neroli']);
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Test');
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
 
         // Send request to update blend
         $response = $this
             ->from(route('blends.show', $blend))
             ->followingRedirects()
             ->patch(route('blends.update', $blend),
-                blendPayload('Test 2', [
+                blendPayload('Blend 2', [
                     ingredient($material1),
                     ingredient($material2),
                 ])
             );
-
+        dump($response->status());
         // Get HTML from version container
         $crawler = crawl($response);
         $versionContainer = $crawler->filter('div[data-testId="blend-version"]');

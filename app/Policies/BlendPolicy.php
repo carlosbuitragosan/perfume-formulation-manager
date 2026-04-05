@@ -7,12 +7,17 @@ use App\Models\User;
 
 class BlendPolicy
 {
-    public function view(User $user, Blend $blend)
+    public function view(User $user, Blend $blend): bool
     {
         return $user->id === $blend->user_id;
     }
 
     public function update(User $user, Blend $blend): bool
+    {
+        return $blend->user_id === $user->id;
+    }
+
+    public function delete(User $user, Blend $blend): bool
     {
         return $blend->user_id === $user->id;
     }
