@@ -43,12 +43,16 @@ class MaterialController extends Controller
     // Edit form
     public function edit(Material $material)
     {
+        $this->authorize('update', $material);
+
         return view('materials.edit', compact('material'));
     }
 
     // Update
     public function update(UpdateMaterialRequest $request, Material $material)
     {
+        $this->authorize('update', $material);
+
         $data = $request->validated();
 
         $material->update($data);
@@ -63,6 +67,8 @@ class MaterialController extends Controller
     // material show page
     public function show(Material $material)
     {
+        $this->authorize('view', $material);
+
         // GET request, data is in url
         $blendIngredientId = request()->integer('ingredient');
         $selectedBottleId = null;
@@ -70,9 +76,13 @@ class MaterialController extends Controller
 
         if ($blendIngredientId) {
             $blendIngredient = BlendIngredient::findOrFail($blendIngredientId);
+
+            $this->authorize('view', $blendIngredient->blendVersion->blend);
+
             $selectedBottleId = $blendIngredient->bottle_id;
         }
 
+        // Sort bottles for display @ Models/Material
         $bottles = $material->bottlesFor($blendIngredient);
 
         return view('materials.show', compact(
@@ -85,6 +95,8 @@ class MaterialController extends Controller
 
     public function destroy(Material $material)
     {
+        $this->authorize('delete', $material);
+
         try {
             $material->delete();
 

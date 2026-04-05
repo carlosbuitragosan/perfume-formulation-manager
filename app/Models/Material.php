@@ -30,6 +30,8 @@ class Material extends Model
 
     public function scopeSearch($query, ?string $term)
     {
+        // Overview: search materials by name, botanical, notes, families effects, etc.
+
         $term = trim((string) $term);
         if ($term === '') {
             return $query;
@@ -78,6 +80,7 @@ class Material extends Model
         return $this->bottles()
             // Add a virtual "is_used" flag: true if this bottle is referenced by any blend ingredients
             ->withExists(['usages as is_used'])
+            // if blendIngredient exists (in the url) apply filter (not finished), else do nothing
             ->when($blendIngredient, function ($query) {
                 $query->where('is_finished', false);
             })

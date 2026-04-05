@@ -343,11 +343,11 @@ describe('materials show page', function () {
 
         // Create blend & add ingredient
         [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
+
         $ingredient = addIngredient($version, $material, $bottle->id);
         $ingredient->refresh()->load('blendVersion.blend');
 
-        // Get HTML from materials.show with blend ingredient context
-        [, $crawler] = getPageCrawler($this->user, route('materials.show', $material).'?ingredient='.$ingredient->id);
+        [,$crawler] = getPageCrawler($this->user, route('materials.show', $material).'?ingredient='.$ingredient->id);
         $bottleText = $crawler->filter("div#bottle-$ingredient->bottle_id")->text();
 
         // Assert message is visible

@@ -125,8 +125,8 @@ function makeBlendWithVersion(User $user, string $name = 'Test Blend')
 function addIngredient($version, $material, $bottleId = null, $drops = 4, $dilution = 25)
 {
     return $version->ingredients()->create([
-        'material_id' => $material->id,
         'bottle_id' => $bottleId,
+        'material_id' => $material->id,
         'drops' => $drops,
         'dilution' => $dilution,
     ]);
