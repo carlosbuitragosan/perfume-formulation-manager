@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Material;
 
 use App\Models\Material;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreMaterialRequest extends FormRequest
+class UpdateMaterialRequest extends FormRequest
 {
     // this runs first
     protected function prepareForValidation()
@@ -19,7 +19,6 @@ class StoreMaterialRequest extends FormRequest
         ]);
     }
 
-    // This runs second
     public function authorize(): bool
     {
         return true;
@@ -30,7 +29,6 @@ class StoreMaterialRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    // This runs third
     public function rules(): array
     {
         return [
@@ -57,14 +55,14 @@ class StoreMaterialRequest extends FormRequest
         ];
     }
 
-    // This runs after rules()
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $needle = mb_strtolower($this->input('name'));
+            $needle = mb_strtolower((string) $this->input('name'));
 
             $exists = Material::where('user_id', auth()->id())
                 ->whereRaw('LOWER(name) = ?', [$needle])
+                ->where('id', '!=', $this->route('material')->id)
                 ->exists();
 
             if ($exists) {

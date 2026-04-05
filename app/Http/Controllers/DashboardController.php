@@ -8,14 +8,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-
-        $blends = Blend::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
+        $blends = Blend::where('user_id', auth()->id())
+            ->latest()
             ->get();
 
-        return view('dashboard', [
-            'blends' => $blends,
-        ]);
+        return view('dashboard', compact('blends'));
     }
 }
