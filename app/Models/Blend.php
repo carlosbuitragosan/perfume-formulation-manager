@@ -130,7 +130,7 @@ class Blend extends Model
         // Delete ingredients
         $version->ingredients()->delete();
 
-        // Get the materials from the request
+        // Get the all materials from the request
         $incomingMaterialIds = collect($materials)
             ->pluck('material_id');
 

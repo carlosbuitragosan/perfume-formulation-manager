@@ -11,9 +11,8 @@ class BlendController extends Controller
 {
     public function create()
     {
-        $materials = Material::where('user_id', auth()->id())
-            ->orderBy('name')
-            ->get();
+        // Get a collection of all materials for user
+        $materials = Material::forUserOrdered(auth()->id())->get();
 
         return view('blends.create', compact('materials'));
     }
@@ -42,6 +41,7 @@ class BlendController extends Controller
         // Return version or null
         $version = $blend->currentVersion();
 
+        // Return ingredients for display: drops, dilution, pure percetates, labels, etc
         $blendIngredients = $blend->formattedIngredients($version);
 
         return view('blends.show', compact('blend', 'version', 'blendIngredients'));
@@ -66,9 +66,8 @@ class BlendController extends Controller
         // Must return a version else 404
         $version = $blend->currentVersionOrFail();
 
-        $materials = Material::where('user_id', auth()->id())
-            ->orderBy('name')
-            ->get();
+        // Get all materials for user
+        $materials = Material::forUserOrdered(auth()->id())->get();
 
         return view('blends.edit', compact('blend', 'version', 'materials'));
     }

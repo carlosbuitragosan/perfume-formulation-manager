@@ -2,44 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ExtractionMethod;
+use App\Http\Requests\Bottle\StoreBottleRequest;
+use App\Http\Requests\Bottle\UpdateBottleRequest;
 use App\Models\BlendIngredient;
 use App\Models\Bottle;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Enum as EnumRule;
 
 class BottleController extends Controller
 {
     // show the form to create a bottle
     public function create(Material $material)
     {
-        abort_if($material->user_id !== auth()->id(), 404);
+        $this->authorize('view', $material);
 
         return view('bottles.create', compact('material'));
     }
 
-    public function store(Material $material, Request $request)
+    public function store(Material $material, StoreBottleRequest $request)
     {
-        abort_if($material->user_id !== auth()->id(), 404);
+        $this->authorize('view', $material);
 
-        $data = $request->validate([
-            'supplier_name' => ['nullable', 'string', 'max:255'],
-            'supplier_url' => ['nullable', 'url'],
-            'batch_code' => ['nullable', 'string', 'max:255'],
-            'method' => ['required', new EnumRule(ExtractionMethod::class)],
-            'plant_part' => ['nullable', 'string', 'max:255'],
-            'origin_country' => ['nullable', 'string', 'max:255'],
-            'purchase_date' => ['nullable', 'date'],
-            'expiry_date' => ['nullable', 'date'],
-            'density' => ['nullable', 'numeric', 'between:0,2'],
-            'volume_ml' => ['nullable', 'numeric', 'min:0'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'notes' => ['nullable', 'string'],
-            'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:5120'],
-        ]);
+        $data = $request->validated();
 
         // Get the uploaded files
         $files = $request->file('files', []);
@@ -53,6 +38,89 @@ class BottleController extends Controller
         // Create bottle
         $bottle = $material->bottles()->create($data);
 
+        // Store files
+        $this->storeFiles($bottle, $files);
+
+        // Get the blend
+        $blendIngredient = null;
+        $blendIngredientId = $data['ingredient'] ?? null;
+        if ($blendIngredientId) {
+            $blendIngredient = BlendIngredient::find($blendIngredientId);
+        }
+
+        // Check blend ingredient
+        if ($blendIngredient && $bottle->assignToBlendIngredient($blendIngredient)) {
+
+            $blend = $blendIngredient->blendVersion?->blend;
+
+            return redirect()->route('blends.show', $blend)
+                ->with('success', "Bottle assigned to {$material->name}")
+                ->with('blend_id', $blend->id);
+        }
+
+        return redirect()->route('materials.show', $material)
+            ->with('success', 'Bottle added');
+    }
+
+    public function edit(Bottle $bottle)
+    {
+        $this->authorize('update', $bottle);
+
+        return view('bottles.edit', compact('bottle'));
+    }
+
+    public function update(UpdateBottleRequest $request, Bottle $bottle)
+    {
+        $this->authorize('update', $bottle);
+
+        $data = $request->validated();
+
+        // Extract file deletion instructions
+        $removeFileIds = $data['remove_files'] ?? [];
+
+        // Extract new uploaded files
+        $newFiles = $request->file('files', []);
+
+        // Remove non-DB field before update
+        unset($data['remove_files']);
+
+        // update bottle fields
+        $bottle->update($data);
+
+        // delete files
+        $this->deleteFiles($bottle, $removeFileIds);
+
+        // store newly uploaded files
+        $this->storeFiles($bottle, $newFiles);
+
+        $material = $bottle->material;
+
+        return redirect(route('materials.show', $material).'#bottle-'.$bottle->id)
+            ->with('success', 'Bottle updated')
+            ->with('bottle_id', $bottle->id);
+    }
+
+    // Delete files helper
+    protected function deleteFiles(Bottle $bottle, array $fileIds): void
+    {
+        if (empty($fileIds)) {
+            return;
+        }
+        $files = $bottle->files()
+            ->whereIn('id', $fileIds)
+            ->get();
+
+        foreach ($files as $file) {
+            // delete physical file from disk
+            Storage::disk('public')->delete($file->path);
+            // delete DB row
+            $file->delete();
+        }
+    }
+
+    // Store files helper
+    protected function storeFiles(Bottle $bottle, array $files): void
+    {
         foreach ($files as $file) {
             $originalName = $file->getClientOriginalName();
 
@@ -68,109 +136,14 @@ class BottleController extends Controller
                 'note' => null,
             ]);
         }
-
-        // Get the blend ingredient ID from the url
-        $blendIngredientId = $request->input('ingredient');
-        $blendIngredient = BlendIngredient::find($blendIngredientId);
-
-        // Check blen ingredient ID exists and has no bottle assigned to it
-        if ($blendIngredient && $blendIngredient->bottle_id == null) {
-
-            // Assign bottle to blend ingredient
-            $blendIngredient->update([
-                'bottle_id' => $bottle->id,
-            ]);
-
-            $blend = $blendIngredient->BlendVersion?->blend;
-
-            return redirect()->route('blends.show', $blend)
-                ->with('success', "Bottle assigned to {$material->name}")
-                ->with('blend_id', $blend->id);
-        }
-
-        return redirect()->route('materials.show', $material)
-            ->with('success', 'Bottle added');
     }
 
-    public function edit(Bottle $bottle)
-    {
-        abort_if($bottle->user_id !== auth()->id(), 404);
-
-        return view('bottles.edit', compact('bottle'));
-    }
-
-    public function update(Request $request, Bottle $bottle)
-    {
-        abort_if($bottle->user_id !== auth()->id(), 404);
-
-        $data = $request->validate([
-            'supplier_name' => ['nullable', 'string', 'max:255'],
-            'supplier_url' => ['nullable', 'url'],
-            'batch_code' => ['nullable', 'string', 'max:255'],
-            'method' => ['required', new EnumRule(ExtractionMethod::class)],
-            'plant_part' => ['nullable', 'string', 'max:255'],
-            'origin_country' => ['nullable', 'string', 'max:255'],
-            'purchase_date' => ['nullable', 'date'],
-            'expiry_date' => ['nullable', 'date'],
-            'density' => ['nullable', 'numeric', 'between:0,2'],
-            'volume_ml' => ['nullable', 'numeric', 'min:0'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'notes' => ['nullable', 'string'],
-            'remove_files' => ['sometimes', 'array'],
-            'remove_files.*' => ['integer'],
-            'files' => ['sometimes', 'array'],
-            'files.*' => ['file', 'max:5120'],
-        ]);
-
-        $removeIds = $data['remove_files'] ?? [];
-        $newFiles = $request->file('files', []);
-        unset($data['remove_files']);
-
-        // update bottle fields
-        $bottle->update($data);
-
-        // delete files
-        if (! empty($removeIds)) {
-            $files = $bottle->files()
-                ->whereIn('id', $removeIds)
-                ->get();
-
-            foreach ($files as $file) {
-                // delete physical file from disk
-                Storage::disk('public')->delete($file->path);
-                // delete DB row
-                $file->delete();
-            }
-        }
-
-        // store newly uploaded files
-        foreach ($newFiles as $file) {
-            $originalName = $file->getClientOriginalName();
-            $storedPath = $file->store("bottles/{$bottle->id}", 'public');
-
-            $bottle->files()->create([
-                'user_id' => auth()->id(),
-                'path' => $storedPath,
-                'original_name' => $originalName,
-                'mime_type' => $file->getClientMimeType(),
-                'size_bytes' => $file->getSize(),
-                'note' => null,
-            ]);
-        }
-
-        $material = $bottle->material;
-
-        return redirect(route('materials.show', $material).'#bottle-'.$bottle->id)
-            ->with('success', 'Bottle updated')
-            ->with('bottle_id', $bottle->id);
-    }
-
+    // Mark bottle as finished
     public function finish(Bottle $bottle)
     {
-        abort_if($bottle->user_id !== auth()->id(), 404);
+        $this->authorize('update', $bottle);
 
-        $bottle->is_finished = true;
-        $bottle->save();
+        $bottle->update(['is_finished' => true]);
 
         return redirect()
             ->route('materials.show', $bottle->material_id)
@@ -178,9 +151,22 @@ class BottleController extends Controller
             ->with('bottle_id', $bottle->id);
     }
 
-    public function destroy(Request $request, Bottle $bottle)
+    // Unmark bottle as finished
+    public function unfinish(Bottle $bottle)
     {
-        abort_if($bottle->user_id !== auth()->id(), 404);
+        $this->authorize('update', $bottle);
+
+        $bottle->update(['is_finished' => false]);
+
+        return redirect(route('materials.show', $bottle->material).'#bottle-'.$bottle->id)
+            ->with('success', 'Bottle unmarked as finished')
+            ->with('bottle_id', $bottle->id);
+    }
+
+    // Delete bottle
+    public function destroy(Bottle $bottle)
+    {
+        $this->authorize('delete', $bottle);
 
         $material = $bottle->material;
 
@@ -191,30 +177,15 @@ class BottleController extends Controller
                 ->with('bottle_id', $bottle->id);
         }
 
-        // delete physical files:
-        foreach ($bottle->files as $file) {
-            Storage::disk('public')->delete($file->path);
-        }
-
+        // Delete  files & bottle (b->files()->pluc(id) run a query like SELECT id FROM, unless b->files->pluck(id) which runs SELECT * FROM)
+        $this->deleteFiles($bottle, $bottle->files()->pluck('id')->toArray());
         // delete the folder too
         Storage::disk('public')->deleteDirectory("bottles/{$bottle->id}");
-
         // delete the bottle
         $bottle->delete();
 
         return redirect()
             ->route('materials.show', $material)
             ->with('success', 'Bottle deleted');
-
-    }
-
-    public function unfinish(Bottle $bottle)
-    {
-        $bottle->is_finished = false;
-        $bottle->save();
-
-        return redirect(route('materials.show', $bottle->material).'#bottle-'.$bottle->id)
-            ->with('success', 'Bottle unmarked as finished')
-            ->with('bottle_id', $bottle->id);
     }
 }

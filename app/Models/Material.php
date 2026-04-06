@@ -93,4 +93,12 @@ class Material extends Model
             ->with('files')
             ->get();
     }
+
+    // Query builder extension, internall Material::query()->forUserOrdered
+    public function scopeForUserOrdered($query, $userId)
+    {
+        return $query
+            ->where('user_id', $userId)
+            ->orderBy('name');
+    }
 }

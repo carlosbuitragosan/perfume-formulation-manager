@@ -23,6 +23,7 @@ class Bottle extends Model
         'volume_ml',
         'price',
         'notes',
+        'is_finished',
     ];
 
     protected $casts = [
@@ -42,5 +43,19 @@ class Bottle extends Model
     public function usages()
     {
         return $this->hasMany(BlendIngredient::class, 'bottle_id');
+    }
+
+    public function assignToBlendIngredient(BlendIngredient $blendIngredient)
+    {
+        if ($blendIngredient->bottle_id !== null) {
+            return false;
+        }
+
+        // Assign bottle to blend ingredient
+        $blendIngredient->update([
+            'bottle_id' => $this->id,
+        ]);
+
+        return true;
     }
 }

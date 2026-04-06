@@ -42,7 +42,12 @@ class StoreBlendRequest extends FormRequest
     {
         return [
 
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('blends')->where(fn ($query) => $query->where('user_id', auth()->id())
+                ),
+            ],
             'materials' => ['required', 'array', 'min:2'],
             'materials.*.material_id' => [
                 'required',
@@ -59,12 +64,14 @@ class StoreBlendRequest extends FormRequest
     {
         return [
             'name.required' => 'Enter a blend name',
+            'name.unique' => 'You already have a blend with this name',
             'materials.required' => 'Add at least two ingredients',
             'materials.min' => 'Add at least two ingredients',
             'materials.*.material_id.required' => 'Select a material',
             'materials.*.drops.required' => 'Enter the number of drops',
             'materials.*.drops.integer' => 'Drops must be a whole number',
             'materials.*.drops.max' => 'Drops cannot exceed 999',
+            'materials.*.drops.min' => 'Drops must be at least 1',
         ];
     }
 
