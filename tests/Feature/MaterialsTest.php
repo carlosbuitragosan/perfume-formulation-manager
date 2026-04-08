@@ -176,12 +176,12 @@ describe('creating materials', function () {
     it('allows saving new family descriptors on material create', function () {
         $storeUrl = route('materials.store');
         $payload = materialPayload([
-            'name' => 'my oil',
+            'name' => 'My oil',
             'families' => ['creamy', 'camphorous', 'musky', 'earthy'],
         ]);
         $response = postAs($this->user, $storeUrl, $payload)
             ->assertRedirect();
-        $material = Material::where('name', $payload['name'])->first();
+        $material = Material::latest()->first();
         expect($material->families)->toEqualCanonicalizing(['creamy', 'camphorous', 'musky', 'earthy']);
     });
 

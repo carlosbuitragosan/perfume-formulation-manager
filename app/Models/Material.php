@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class Material extends Model
@@ -100,5 +101,14 @@ class Material extends Model
         return $query
             ->where('user_id', $userId)
             ->orderBy('name');
+
+    }
+
+    // Store material names caplitaized
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => ucwords(strtolower($value))
+        );
     }
 }

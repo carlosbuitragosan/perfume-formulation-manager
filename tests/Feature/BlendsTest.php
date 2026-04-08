@@ -133,7 +133,7 @@ describe('Blend Creation (Form & Submission)', function () {
         $versionContainer = $response->filter('div[data-testId="blend-version"]')->first();
 
         // Assert success message
-        expect($versionContainer->text())->toContain('test blend added');
+        expect($versionContainer->text())->toContain('Test Blend added');
     });
 });
 
