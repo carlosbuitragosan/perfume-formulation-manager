@@ -1,7 +1,7 @@
 <x-app-layout>
    <x-slot name="header">
       <div class="flex items-center justify-between">
-         <h2 class="font-semibold text-xl">{{ $blend->name }}</h2>
+         <h2 class="font-semibold text-xl mr-2">{{ $blend->name }}</h2>
          <div class="flex gap-2">
             <x-link href="{{ route('blends.edit', $blend) }}">EDIT</x-link>
 
