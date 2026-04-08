@@ -28,7 +28,7 @@ class MaterialController extends Controller
         $data = $request->validated();
 
         // assign user ID to material
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = $request->user()->id;
 
         // Create material
         $material = Material::create($data);

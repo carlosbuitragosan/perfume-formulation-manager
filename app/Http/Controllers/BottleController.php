@@ -7,6 +7,7 @@ use App\Http\Requests\Bottle\UpdateBottleRequest;
 use App\Models\BlendIngredient;
 use App\Models\Bottle;
 use App\Models\Material;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,7 +21,7 @@ class BottleController extends Controller
         return view('bottles.create', compact('material'));
     }
 
-    public function store(Material $material, StoreBottleRequest $request)
+    public function store(StoreBottleRequest $request, Material $material)
     {
         $this->authorize('view', $material);
 
@@ -32,14 +33,14 @@ class BottleController extends Controller
         // Remove the files from the request ($data)
         unset($data['files']);
 
-        // Assign logged in user to bottle.user_id
-        $data['user_id'] = auth()->id();
-
         // Create bottle
-        $bottle = $material->bottles()->create($data);
+        $bottle = $material->bottles()->create([
+            ...$data,
+            'user_id' => $request->user()->id,
+        ]);
 
         // Store files
-        $this->storeFiles($bottle, $files);
+        $this->storeFiles($request->user(), $bottle, $files);
 
         // Get the blend
         $blendIngredient = null;
@@ -91,7 +92,7 @@ class BottleController extends Controller
         $this->deleteFiles($bottle, $removeFileIds);
 
         // store newly uploaded files
-        $this->storeFiles($bottle, $newFiles);
+        $this->storeFiles($request->user(), $bottle, $newFiles);
 
         $material = $bottle->material;
 
@@ -119,7 +120,7 @@ class BottleController extends Controller
     }
 
     // Store files helper
-    protected function storeFiles(Bottle $bottle, array $files): void
+    protected function storeFiles(User $user, Bottle $bottle, array $files): void
     {
         foreach ($files as $file) {
             $originalName = $file->getClientOriginalName();
@@ -128,7 +129,7 @@ class BottleController extends Controller
             $storedPath = $file->store("bottles/{$bottle->id}", 'public');
             // Create files
             $bottle->files()->create([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'path' => $storedPath,
                 'original_name' => $originalName,
                 'mime_type' => $file->getClientMimeType(),

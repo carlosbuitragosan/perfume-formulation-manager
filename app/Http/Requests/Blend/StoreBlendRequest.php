@@ -45,7 +45,7 @@ class StoreBlendRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                Rule::unique('blends')->where(fn ($query) => $query->where('user_id', auth()->id())
+                Rule::unique('blends')->where(fn ($query) => $query->where('user_id', $this->user()->id)
                 ),
             ],
             'materials' => ['required', 'array', 'min:2'],
@@ -53,7 +53,7 @@ class StoreBlendRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('materials', 'id')
-                    ->where(fn ($q) => $q->where('user_id', auth()->id())),
+                    ->where(fn ($q) => $q->where('user_id', $this->user()->id)),
             ],
             'materials.*.drops' => ['required', 'integer', 'min:1', 'max:999'],
             'materials.*.dilution' => ['required', 'integer', 'in:25,10,1'],

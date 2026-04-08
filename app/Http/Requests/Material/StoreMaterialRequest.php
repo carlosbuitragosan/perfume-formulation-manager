@@ -63,7 +63,7 @@ class StoreMaterialRequest extends FormRequest
         $validator->after(function ($validator) {
             $needle = mb_strtolower($this->input('name'));
 
-            $exists = Material::where('user_id', auth()->id())
+            $exists = Material::where('user_id', $this->user()->id)
                 ->whereRaw('LOWER(name) = ?', [$needle])
                 ->exists();
 

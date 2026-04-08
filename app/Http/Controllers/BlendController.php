@@ -26,7 +26,7 @@ class BlendController extends Controller
         // Create blend + version
         $blend = Blend::createWithIngredients(
             $data,
-            auth()->id(),
+            $request->user()->id,
         );
 
         return redirect()->route('blends.show', $blend)
@@ -84,7 +84,7 @@ class BlendController extends Controller
         $version = $blend->currentVersionOrFail();
 
         // Rebuild ingredients and assign bottles where possible
-        $blend->rebuildIngredients($version, $data['materials']);
+        $blend->rebuildIngredients($request->user(), $version, $data['materials']);
 
         return redirect()->route('blends.show', $blend)
             ->with('success', "{$blend->name} updated")

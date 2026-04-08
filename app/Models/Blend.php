@@ -122,7 +122,7 @@ class Blend extends Model
             ->pluck('bottle_id', 'material_id');
     }
 
-    public function rebuildIngredients($version, $materials)
+    public function rebuildIngredients(User $user, $version, $materials)
     {
         // Preserve bottle assignments (materialId => bottleId) from DB
         $existingBottleIds = $this->existingBottleAssignments($version);
@@ -135,7 +135,7 @@ class Blend extends Model
             ->pluck('material_id');
 
         // Find all available bottles for all materials in the request (materialId => collection of bottles)
-        $availableBottlesByMaterial = Bottle::where('user_id', auth()->id())
+        $availableBottlesByMaterial = Bottle::where('user_id', $user->id)
             ->where('is_finished', false)
             ->WhereIn('material_id', $incomingMaterialIds)
             ->get()

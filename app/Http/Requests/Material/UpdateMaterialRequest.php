@@ -60,7 +60,7 @@ class UpdateMaterialRequest extends FormRequest
         $validator->after(function ($validator) {
             $needle = mb_strtolower((string) $this->input('name'));
 
-            $exists = Material::where('user_id', auth()->id())
+            $exists = Material::where('user_id', $this->user()->id)
                 ->whereRaw('LOWER(name) = ?', [$needle])
                 ->where('id', '!=', $this->route('material')->id)
                 ->exists();
