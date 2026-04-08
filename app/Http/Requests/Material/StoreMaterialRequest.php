@@ -58,21 +58,23 @@ class StoreMaterialRequest extends FormRequest
     }
 
     // This runs after rules()
-    public function withValidator($validator)
+    public function after(): array
     {
-        $validator->after(function ($validator) {
-            $needle = mb_strtolower($this->input('name'));
+        return [
+            function ($validator) {
+                $needle = mb_strtolower($this->input('name'));
 
-            $exists = Material::where('user_id', $this->user()->id)
-                ->whereRaw('LOWER(name) = ?', [$needle])
-                ->exists();
+                $exists = Material::where('user_id', $this->user()->id)
+                    ->whereRaw('LOWER(name) = ?', [$needle])
+                    ->exists();
 
-            if ($exists) {
-                $validator->errors()->add(
-                    'name',
-                    'You already have a material with that name'
-                );
-            }
-        });
+                if ($exists) {
+                    $validator->errors()->add(
+                        'name',
+                        'You already have a material with that name'
+                    );
+                }
+            },
+        ];
     }
 }

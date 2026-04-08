@@ -75,19 +75,22 @@ class StoreBlendRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator)
+    public function after(): array
     {
         // extra validation to prevent duplicate materials
-        $validator->after(function ($validator) {
-            $materials = $this->input('materials', []);
+        return [
+            function ($validator) {
+                $materials = $this->input('materials', []);
 
-            $ids = collect($materials)
-                ->pluck('material_id')
-                ->filter(); // remove nulls
+                $ids = collect($materials)
+                    ->pluck('material_id')
+                    ->filter(); // remove nulls
 
-            if ($ids->count() !== $ids->unique()->count()) {
-                $validator->errors()->add('materials', 'You can\'t use the same material twice.');
-            }
-        });
+                if ($ids->count() !== $ids->unique()->count()) {
+                    $validator->errors()->add('materials', 'You can\'t use the same material twice.');
+                }
+            },
+        ];
+
     }
 }

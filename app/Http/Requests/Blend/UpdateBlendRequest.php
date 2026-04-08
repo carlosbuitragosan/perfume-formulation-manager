@@ -65,18 +65,21 @@ class UpdateBlendRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator)
+    public function after(): array
     {
-        $validator->after(function ($validator) {
-            $materials = $this->input('materials', []);
+        return [
 
-            $ids = collect($materials)
-                ->pluck('material_id')
-                ->filter();
+            function ($validator) {
+                $materials = $this->input('materials', []);
 
-            if ($ids->count() !== $ids->unique()->count()) {
-                $validator->errors()->add('materials', 'You can\'t use the same material twice.');
-            }
-        });
+                $ids = collect($materials)
+                    ->pluck('material_id')
+                    ->filter();
+
+                if ($ids->count() !== $ids->unique()->count()) {
+                    $validator->errors()->add('materials', 'You can\'t use the same material twice.');
+                }
+            },
+        ];
     }
 }

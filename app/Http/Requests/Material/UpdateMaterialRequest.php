@@ -55,22 +55,24 @@ class UpdateMaterialRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator)
+    public function after(): array
     {
-        $validator->after(function ($validator) {
-            $needle = mb_strtolower((string) $this->input('name'));
+        return [
+            function ($validator) {
+                $needle = mb_strtolower((string) $this->input('name'));
 
-            $exists = Material::where('user_id', $this->user()->id)
-                ->whereRaw('LOWER(name) = ?', [$needle])
-                ->where('id', '!=', $this->route('material')->id)
-                ->exists();
+                $exists = Material::where('user_id', $this->user()->id)
+                    ->whereRaw('LOWER(name) = ?', [$needle])
+                    ->where('id', '!=', $this->route('material')->id)
+                    ->exists();
 
-            if ($exists) {
-                $validator->errors()->add(
-                    'name',
-                    'You already have a material with that name'
-                );
-            }
-        });
+                if ($exists) {
+                    $validator->errors()->add(
+                        'name',
+                        'You already have a material with that name'
+                    );
+                }
+            },
+        ];
     }
 }
