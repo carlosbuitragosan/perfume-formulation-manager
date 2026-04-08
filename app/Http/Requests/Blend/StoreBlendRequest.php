@@ -25,7 +25,10 @@ class StoreBlendRequest extends FormRequest
             ->all();
 
         // Replace original request materials with cleaned version
-        $this->merge(['materials' => $materials]);
+        $this->merge([
+            'materials' => $materials,
+            'name' => ucwords(strtolower($this->input('name'))),
+        ]);
     }
 
     public function authorize(): bool
@@ -45,7 +48,8 @@ class StoreBlendRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                Rule::unique('blends')->where(fn ($query) => $query->where('user_id', $this->user()->id)
+                Rule::unique('blends')->where(
+                    fn ($query) => $query->where('user_id', $this->user()->id)
                 ),
             ],
             'materials' => ['required', 'array', 'min:2'],
