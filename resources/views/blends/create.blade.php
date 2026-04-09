@@ -77,7 +77,7 @@
                               value="{{ $dilution }}"
                               @selected((int) ($row['dilution'] ?? 25) === $dilution)
                            >
-                              {{ $dilution }}
+                              {{ $dilution }}%
                            </option>
                         @endforeach
                      </select>
