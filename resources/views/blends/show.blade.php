@@ -34,7 +34,7 @@
                         <td data-col="material" class="py-2">
                            <x-blend-ingredient-link
                               :blendIngredient="$blendIngredient"
-                              variant="green"
+                              :variant="$blendIngredient['variant']"
                            />
                         </td>
                         <td data-col="drops" class="py-2">

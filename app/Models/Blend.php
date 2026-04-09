@@ -108,6 +108,7 @@ class Blend extends Model
                 'drops' => (string) $ingredient->drops,
                 'dilution' => $ingredient->dilution.'%',
                 'pure_pct' => rtrim(rtrim(number_format($purePercentage, 2, '.', ''), '0'), '.').'%',
+                'variant' => $ingredient->variant(),
             ];
         });
     }

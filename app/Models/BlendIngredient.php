@@ -72,4 +72,23 @@ class BlendIngredient extends Model
             default => 999,
         };
     }
+
+    public function variant(): string
+    {
+        $pyramid = $this->material->pyramid ?? [];
+
+        sort($pyramid);
+
+        $key = implode('-', $pyramid);
+
+        return match ($key) {
+            'top' => 'top',
+            'heart' => 'heart',
+            'base' => 'base',
+            'heart-top' => 'top-heart',
+            'base-heart' => 'heart-base',
+            'base-heart-top' => 'all',
+            default => 'heart',
+        };
+    }
 }

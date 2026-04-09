@@ -257,6 +257,34 @@ describe('Blend Display & Breakdown', function () {
             expect($rows->eq($index)->text())->toContain($name);
         }
     });
+
+    test('maps pyramid values to correct ingredient variant', function () {
+        // Create materials
+        $topHeartMaterial = makeMaterial(['name' => 'top heart', 'pyramid' => ['top', 'heart']]);
+        $topMaterial = makeMaterial(['name' => 'top', 'pyramid' => ['top']]);
+        $heartBaseMaterial = makeMaterial(['name' => 'heart base', 'pyramid' => ['heart', 'base']]);
+        $heartMaterial = makeMaterial(['name' => 'heart', 'pyramid' => ['heart']]);
+        $baseMaterial = makeMaterial(['name' => 'base', 'pyramid' => ['base']]);
+        $topHeartBaseMaterial = makeMaterial(['name' => 'top heart base', 'pyramid' => ['top', 'heart', 'base']]);
+
+        // Create blend with ingredients
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Pyramid Test');
+        $topIngredient = addIngredient($version, $topMaterial);
+        $topHeartIngredient = addIngredient($version, $topHeartMaterial);
+        $heartIngredient = addIngredient($version, $heartMaterial);
+        $heartBaseIngredient = addIngredient($version, $heartBaseMaterial);
+        $topHeartBaseIngredient = addIngredient($version, $topHeartBaseMaterial);
+        $baseIngredient = addIngredient($version, $baseMaterial);
+
+        // Assert ingredients' variants
+        expect($topIngredient->variant())->toBe('top');
+        expect($heartIngredient->variant())->toBe('heart');
+        expect($baseIngredient->variant())->toBe('base');
+        expect($topHeartIngredient->variant())->toBe('top-heart');
+        expect($heartBaseIngredient->variant())->toBe('heart-base');
+        expect($topHeartBaseIngredient->variant())->toBe('all');
+
+    });
 });
 
 // ==========================================================
