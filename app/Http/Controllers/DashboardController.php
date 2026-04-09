@@ -9,7 +9,7 @@ class DashboardController extends Controller
     public function index()
     {
         $blends = Blend::where('user_id', auth()->id())
-            ->latest()
+            ->latest('updated_at')
             ->get();
 
         return view('dashboard', compact('blends'));

@@ -85,12 +85,15 @@ class Blend extends Model
             return collect();
         }
 
+        // Sort ingredients by pyramid order
+        $ingredients = $version->ingredientsOrdered();
+
         // total of drops of PURE material (e.g. x3, 10 drops @25 each =  7.5)
-        $pureTotal = $version->ingredients->sum(function ($ingredient) {
+        $pureTotal = $ingredients->sum(function ($ingredient) {
             return $ingredient->drops * ($ingredient->dilution / 100);
         });
 
-        return $version->ingredients->map(function ($ingredient) use ($pureTotal) {
+        return $ingredients->map(function ($ingredient) use ($pureTotal) {
             // pure amount of material
             $pure = $ingredient->drops * ($ingredient->dilution / 100); // 2.5
             // percentage of pure material in the blend
@@ -115,6 +118,7 @@ class Blend extends Model
         $this->update([
             'name' => $name,
         ]);
+        $this->touch();
     }
 
     public function existingBottleAssignments($version)

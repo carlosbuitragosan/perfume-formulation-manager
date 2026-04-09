@@ -50,4 +50,26 @@ class BlendIngredient extends Model
 
         return true;
     }
+
+    public function pyramidSortValue()
+    {
+        // Return an empty array if material has no values
+        $pyramid = $this->material->pyramid ?? [];
+
+        // Sort alphabetically to ensure consistency
+        sort($pyramid);
+
+        // Turn array into a string e.g. heart-top
+        $key = implode('-', $pyramid);
+
+        return match ($key) {
+            'top' => 1,
+            'heart-top' => 2,
+            'heart' => 3,
+            'base-heart' => 4,
+            'base-heart-top' => 5,
+            'base' => 6,
+            default => 999,
+        };
+    }
 }

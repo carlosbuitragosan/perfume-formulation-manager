@@ -214,6 +214,49 @@ describe('Blend Display & Breakdown', function () {
         expect($lavenderUri)->toContain(route('materials.show', $lavender));
         expect($lavenderUri)->toContain('ingredient='.$lavenderIngredient->id);
     });
+
+    test('shows blend ingredients listed by pyramid values', function () {
+        // Create materials
+        $topHeartMaterial = makeMaterial(['name' => 'top heart', 'pyramid' => ['top', 'heart']]);
+        $topMaterial = makeMaterial(['name' => 'top', 'pyramid' => ['top']]);
+        $heartBaseMaterial = makeMaterial(['name' => 'heart base', 'pyramid' => ['heart', 'base']]);
+        $heartMaterial = makeMaterial(['name' => 'heart', 'pyramid' => ['heart']]);
+        $baseMaterial = makeMaterial(['name' => 'base', 'pyramid' => ['base']]);
+        $topHeartBaseMaterial = makeMaterial(['name' => 'top heart base', 'pyramid' => ['top', 'heart', 'base']]);
+
+        // Create blend with ingredients
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Pyramid Test');
+        $materials = [
+            $topMaterial,
+            $topHeartMaterial,
+            $heartMaterial,
+            $heartBaseMaterial,
+            $topHeartBaseMaterial,
+            $baseMaterial,
+        ];
+        foreach ($materials as $material) {
+            addIngredient($version, $material);
+        }
+
+        // Get HTML from blend show page and version container
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        $ingredientsTable = $crawler->filter('div[data-testid="blend-version"][data-version="1.0"] tbody');
+        $rows = $ingredientsTable->filter('tr');
+
+        // Assert ingredients are listed in order of pyramid values (e.g. top to base note)
+        $expectedOrder = [
+            $topMaterial->name,
+            $topHeartMaterial->name,
+            $heartMaterial->name,
+            $heartBaseMaterial->name,
+            $topHeartBaseMaterial->name,
+            $baseMaterial->name,
+        ];
+
+        foreach ($expectedOrder as $index => $name) {
+            expect($rows->eq($index)->text())->toContain($name);
+        }
+    });
 });
 
 // ==========================================================

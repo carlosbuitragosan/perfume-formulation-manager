@@ -86,6 +86,9 @@ class BlendController extends Controller
         // Rebuild ingredients and assign bottles where possible
         $blend->rebuildIngredients($request->user(), $version, $data['materials']);
 
+        // Touch blend to update updated_at timestamp for sorting on UI
+        $blend->touch();
+
         return redirect()->route('blends.show', $blend)
             ->with('success', "{$blend->name} updated")
             ->with('blend_id', $blend->id);

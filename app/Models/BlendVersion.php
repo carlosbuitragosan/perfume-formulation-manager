@@ -23,4 +23,13 @@ class BlendVersion extends Model
     {
         return $this->hasMany(BlendIngredient::class);
     }
+
+    public function ingredientsOrdered()
+    {
+        return $this->ingredients()
+            ->with('material')
+            ->get()
+            ->sortBy(fn ($ingredient) => $ingredient->pyramidSortValue())
+            ->values(); // reindex after sorting
+    }
 }
