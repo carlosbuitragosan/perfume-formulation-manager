@@ -331,7 +331,7 @@ describe('materials show page', function () {
         $text = $crawler->text();
 
         // Assert message is present
-        expect($text)->toContain('Click "Add Bottle"');
+        expect($text)->toContain('Click "Create Bottle"');
         expect($text)->toContain($ingredient->material->name);
         expect($text)->toContain($blend->name);
     });

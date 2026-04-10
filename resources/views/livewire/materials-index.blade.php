@@ -30,7 +30,7 @@
    </div>
 
    {{-- Button to create material --}}
-   <x-link href="{{ route('materials.create') }}">Add Material</x-link>
+   <x-link href="{{ route('materials.create') }}">Create Material</x-link>
 
    {{-- Succes delete material --}}
    @if (session('success') && ! session('material_id'))

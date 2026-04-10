@@ -1,6 +1,6 @@
 <x-app-layout>
    <x-slot name="header">
-      <h2 class="font-semibold text-xl">Add Material</h2>
+      <h2 class="font-semibold text-xl">Create Material</h2>
    </x-slot>
    <div class="p-4">
       <form method="post" action="{{ route('materials.store') }}" class="space-y-3">

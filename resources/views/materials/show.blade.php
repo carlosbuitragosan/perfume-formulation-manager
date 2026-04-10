@@ -20,7 +20,7 @@
             </p>
 
             <ul class="mt-2 list-disc list-inside">
-               <li>Click "Add Bottle"</li>
+               <li>Click "Create Bottle"</li>
                @if ($material->bottles->where('is_finished', false)->isNotEmpty())
                   <li>Or select one from the list below</li>
                @endif
@@ -31,7 +31,7 @@
       <x-link
          href="{{ route('materials.bottles.create', $material) }}{{ request('ingredient') ?  '?ingredient='.request('ingredient') : '' }}"
       >
-         Add Bottle
+         Create Bottle
       </x-link>
 
       {{-- Succes delete bottle --}}
