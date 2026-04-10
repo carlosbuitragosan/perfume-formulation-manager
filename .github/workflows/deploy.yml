@@ -58,7 +58,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           command: |
-            ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no IdentitiesOnly=yes root@187.77.177.77 << 'EOF'
+            ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o IdentitiesOnly=yes root@187.77.177.77 << 'EOF'
             set -e
 
             cd /var/www/perfume-formulation-manager
