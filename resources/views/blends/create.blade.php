@@ -30,7 +30,13 @@
 
          @php
             $oldMaterials = old('materials');
-            $rows = is_array($oldMaterials) && count($oldMaterials) ? $oldMaterials : [['material_id' => '', 'drops' => '', 'dilution' => 25]];
+            $rows =
+               is_array($oldMaterials) && count($oldMaterials)
+                  ? $oldMaterials
+                  : [
+                     ['material_id' => '', 'drops' => '', 'dilution' => 25],
+                     ['material_id' => '', 'drops' => '', 'dilution' => 25],
+                  ];
          @endphp
 
          {{-- INGREDIENTS --}}

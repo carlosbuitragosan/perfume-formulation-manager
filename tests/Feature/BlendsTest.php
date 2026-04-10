@@ -68,12 +68,18 @@ describe('Blend Creation (Form & Submission)', function () {
         ]);
     });
 
-    test('create form shows only one ingredient row with the expected inputs', function () {
+    test('create form shows two ingredient rows with the expected inputs', function () {
         [, $crawler] = getPageCrawler($this->user, route('blends.create'));
-        expect($crawler->filter('[data-testid="ingredient-row"]')->count())->toBe(1);
+        expect($crawler->filter('[data-testid="ingredient-row"]')->count())->toBe(2);
+
         expect($crawler->filter('select[name="materials[0][material_id]"]')->count())->toBe(1);
+        expect($crawler->filter('select[name="materials[1][material_id]"]')->count())->toBe(1);
+
         expect($crawler->filter('input[name="materials[0][drops]"]')->count())->toBe(1);
+        expect($crawler->filter('input[name="materials[1][drops]"]')->count())->toBe(1);
+
         expect($crawler->filter('select[name="materials[0][dilution]"]')->count())->toBe(1);
+        expect($crawler->filter('select[name="materials[1][dilution]"]')->count())->toBe(1);
     });
 
     test('Create form provides the button and template needed to add ingredients', function () {
