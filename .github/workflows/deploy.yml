@@ -2,16 +2,18 @@ name: Test and Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
+      # Clone repository in new machine
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Defines environment explicitly, even though it may already be installed
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -19,13 +21,14 @@ jobs:
           extensions: mbstring, bcmath, sqlite
           coverage: none
 
-      # ✅ Create .env + folders BEFORE installation
+      # Create .env + folders BEFORE installation
       - name: Prepare environment
         run: |
           cp .env.example .env
           mkdir -p storage/framework/{cache,sessions,views}
           mkdir -p bootstrap/cache
 
+      # install dependencies automatically - no interaction(no questions), prefer dist (download zip)
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
@@ -46,6 +49,9 @@ jobs:
 
     steps:
       - name: Setup SSH key
+        # Create SSH folder
+        # Add private key stored on github
+        # Set permissions
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
@@ -58,7 +64,9 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           command: |
-            ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o IdentitiesOnly=yes root@187.77.177.77 << 'EOF'
+            ssh -p 2222 -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o IdentitiesOnly=yes root@187.77.177.77 << 'EOF'
+
+            # Stop if any command fails
             set -e
 
             cd /var/www/perfume-formulation-manager
