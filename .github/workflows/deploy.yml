@@ -64,7 +64,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           command: |
-            ssh -p 2222 -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o IdentitiesOnly=yes root@187.77.177.77 << 'EOF'
+            ssh -p 2222 -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o IdentitiesOnly=yes deploy@187.77.177.77 << 'EOF'
 
             # Stop if any command fails
             set -e
@@ -75,14 +75,13 @@ jobs:
 
             git fetch origin main
             git reset --hard origin/main
-            git clean -fd
 
             composer install --no-dev --optimize-autoloader
 
             mkdir -p storage/framework/{cache,sessions,views}
             mkdir -p bootstrap/cache
-            chown -R www-data:www-data storage bootstrap/cache
-            chmod -R 775 storage bootstrap/cache
+
+            sudo -n chmod -R 775 storage bootstrap/cache
 
             php artisan optimize:clear
             php artisan config:cache
