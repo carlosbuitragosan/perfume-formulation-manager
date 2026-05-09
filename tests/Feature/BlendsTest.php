@@ -613,4 +613,14 @@ describe('blend versioning', function () {
         $link = $crawler->selectLink('New Version');
         expect($link->link()->getUri())->toBe(route('blends.versions.create', $blend));
     });
+
+    it('shows the blend version creation form for an existing blend', function () {
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+        // Visit create-version page
+        [, $crawler] = getPageCrawler($this->user, route('blends.versions.create', $blend));
+        // Assert form exists
+        $form = $crawler->filter('form#create-blend-version-form');
+        expect($form->count())->toBe(1);
+    });
 });

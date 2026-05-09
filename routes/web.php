@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\DemoLoginController;
 use App\Http\Controllers\BlendController;
 use App\Http\Controllers\BlendIngredientController;
+use App\Http\Controllers\BlendVersionController;
 use App\Http\Controllers\BottleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaterialController;
