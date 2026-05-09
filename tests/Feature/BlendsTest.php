@@ -304,6 +304,15 @@ describe('Blend Display & Breakdown', function () {
         expect($versionCard->filter('a')->text())->toContain('EDIT');
         expect($versionCard->filter('form')->text())->toContain('DELETE');
     });
+
+    it('it displays a link to create a new blend version', function () {
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+        // get HTML from blend show page
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        // Assert button to create new blend is present
+        expect($crawler->selectLink('New Version')->count())->toBe(1);
+    });
 });
 
 // ==========================================================
@@ -591,5 +600,17 @@ describe('blend ingredient bottle assignment', function () {
 
         // Assert bottle has been assigned to the blend ingredient
         expect($lavenderIngredient->bottle_id)->not->toBe(null);
+    });
+});
+
+describe('blend versioning', function () {
+    it('shows a link to create a new version for the blend', function () {
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+        // get HTML from blend show page
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        // Assert href to create new blend version is present
+        $link = $crawler->selectLink('New Version');
+        expect($link->link()->getUri())->toBe(route('blends.versions.create', $blend));
     });
 });

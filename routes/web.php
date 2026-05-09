@@ -48,6 +48,10 @@ Route::middleware('auth')
         Route::resource('blends', BlendController::class)
             ->only(['create', 'store', 'show', 'destroy', 'edit', 'update']);
 
+        // Blend versions
+        Route::get('/blends/{blend}/versions/create', [BlendVersionController::class, 'create'])
+            ->name('blends.versions.create');
+
         // Blend ingredients
         Route::post('/blend-ingredients/{blendIngredient}/bottles/{bottle}',
             [BlendIngredientController::class, 'assignBottle'])
