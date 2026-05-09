@@ -2,15 +2,6 @@
    <x-slot name="header">
       <div class="flex items-center justify-between">
          <h2 class="font-semibold text-xl mr-2">{{ $blend->name }}</h2>
-         <div class="flex gap-2">
-            <x-link href="{{ route('blends.edit', $blend) }}">EDIT</x-link>
-
-            <form method="POST" action="" onsubmit="return confirm('Delete {{ $blend->name }}?')">
-               @csrf
-               @method('DELETE')
-               <x-danger-button>DELETE</x-danger-button>
-            </form>
-         </div>
       </div>
    </x-slot>
 
@@ -51,6 +42,17 @@
                </tbody>
             </table>
          </div>
+
+         <div class="flex gap-2">
+            <x-link href="{{ route('blends.edit', $blend) }}">EDIT</x-link>
+
+            <form method="POST" action="" onsubmit="return confirm('Delete {{ $blend->name }}?');">
+               @csrf
+               @method('DELETE')
+               <x-danger-button>DELETE</x-danger-button>
+            </form>
+         </div>
+
          @if (session('success'))
             <x-flash type="success">{{ session('success') }}</x-flash>
          @endif

@@ -291,25 +291,25 @@ describe('Blend Display & Breakdown', function () {
         expect($topHeartBaseIngredient->variant())->toBe('all');
 
     });
+
+    it('it displays version actions within the blend version card', function () {
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+        // Get HTML from blend show page and version container
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        $versionCard = $crawler->filter('div[data-testid="blend-version"][data-version="'.$version->version.'"]');
+
+        // Assert version actions are within the blend version card
+        expect($versionCard->filter('a')->text())->toContain('EDIT');
+        expect($versionCard->filter('form')->text())->toContain('DELETE');
+    });
 });
 
 // ==========================================================
 // Blend Deletion
 // ==========================================================
 describe('Blend Deletion', function () {
-    test('Each blend shows a delete & edit button in the show page', function () {
-        $lavender = makeMaterial();
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
-        addIngredient($version, $lavender);
-        addIngredient($version, $neroli);
-        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
-        $blendHeader = $crawler->filter('header');
-        expect($blendHeader->filter('h2')->text())->toBe('Moonshine');
-        expect($blendHeader->selectLink('EDIT')->count())->toBe(1);
-        expect($blendHeader->selectButton('DELETE')->count())->toBe(1);
-    });
-
     test('user can delete a blend', function () {
         [$blend] = makeBlendWithVersion($this->user, 'Moonshine');
         $response = $this->delete(route('blends.destroy', $blend))
