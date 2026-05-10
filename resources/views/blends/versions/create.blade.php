@@ -10,9 +10,10 @@
       <form
          id="create-blend-version-form"
          method="POST"
-         action="{{ route('blends.store') }}"
+         action="{{ route('blends.versions.store', $blend) }}"
          class="space-y-3"
       >
+         @csrf
          <h3 class="font-medium">Ingredients</h3>
          @error('materials')
             <div>

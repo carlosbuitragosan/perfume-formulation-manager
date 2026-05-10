@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Blend;
+use App\Models\BlendVersion;
 use App\Models\Bottle;
 use App\Models\User;
 
@@ -540,7 +541,7 @@ describe('Blend Editing', function () {
                     ingredient($material2),
                 ])
             );
-        dump($response->status());
+
         // Get HTML from version container
         $crawler = crawl($response);
         $versionContainer = $crawler->filter('div[data-testId="blend-version"]');
@@ -623,4 +624,52 @@ describe('blend versioning', function () {
         $form = $crawler->filter('form#create-blend-version-form');
         expect($form->count())->toBe(1);
     });
+
+    it('creates a new blend version for an existing blend and redirects to the blend show page', function () {
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+        // Create material & payload for new version
+        $lavender = makeMaterial();
+        $cumin = makeMaterial(['name' => 'Cumin']);
+
+        $payload = [
+            'materials' => [
+                [
+                    'material_id' => $lavender->id,
+                    'drops' => 10,
+                    'dilution' => 25,
+                ],
+                [
+                    'material_id' => $cumin->id,
+                    'drops' => 10,
+                    'dilution' => 25,
+                ],
+            ],
+        ];
+
+        // Submit request to create new version
+        $response = postAS($this->user, route('blends.versions.store', $blend), $payload);
+
+        $blend->refresh();
+        // Assert new version is created
+        expect(BlendVersion::where('blend_id', $blend->id)->count())->toBe(2);
+
+        // Assert redirect to blend show page
+        $response->assertRedirect(route('blends.show', $blend));
+    });
+
+    it('shows every version belonging to a blend', function () {
+        // Create blend + 2 versions
+        [$blend, $version1] = makeBlendWithVersion($this->user, 'Test Blend');
+        $version2 = $blend->versions()->create([
+            'version' => '2.0',
+        ]);
+
+        // Get HTML for blend show page
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        // Assert both versions are shown
+        expect($crawler->filter('div[data-testid="blend-version"]')->count())->toBe(2);
+    });
+
 });

@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreBlendRequest extends FormRequest
+class StoreBlendVersionRequest extends FormRequest
 {
     protected function prepareForValidation()
     {
@@ -24,12 +24,6 @@ class StoreBlendRequest extends FormRequest
             })
             ->values()
             ->all();
-
-        // Replace original request materials with cleaned version
-        $this->merge([
-            'materials' => $materials,
-            'name' => ucwords(strtolower($this->input('name'))),
-        ]);
     }
 
     public function authorize(): bool
@@ -45,14 +39,6 @@ class StoreBlendRequest extends FormRequest
     public function rules(): array
     {
         return [
-
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('blends')->where(
-                    fn ($query) => $query->where('user_id', $this->user()->id)
-                ),
-            ],
             'materials' => ['required', 'array', 'min:2'],
             'materials.*.material_id' => [
                 'required',
@@ -68,8 +54,6 @@ class StoreBlendRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Enter a blend name',
-            'name.unique' => 'You already have a blend with this name',
             'materials.required' => 'Add at least two ingredients',
             'materials.min' => 'Add at least two ingredients',
             'materials.*.material_id.required' => 'Select a material',

@@ -41,7 +41,7 @@ class Blend extends Model
             ->firstOrFail(); // return version or 404
     }
 
-    public static function createWithIngredients(array $data, int $userId)
+    public static function createBlendWithIngredients(array $data, int $userId)
     {
         $blend = self::create([
             'user_id' => $userId,
@@ -79,38 +79,37 @@ class Blend extends Model
         return $blend;
     }
 
-    public function formattedIngredients($version)
+    public function createVersionWithIngredients(array $data)
     {
-        if (! $version) {
-            return collect();
+        $version = $this->versions()->create([
+            'version' => '2.0',
+        ]);
+
+        // Create ingredients for this version
+        foreach ($data['materials'] as $row) {
+            // Find available bottles for each material
+            $availableBottlesByMaterial = Bottle::where('user_id', $this->user_id)
+                ->where('material_id', $row['material_id'])
+                ->where('is_finished', false)
+                ->take(2) // we only need to check if 1 or more are available
+                ->get();
+
+            $bottleId = null;
+
+            // Assign bottle if only one exists
+            if ($availableBottlesByMaterial->count() === 1) {
+                $bottleId = $availableBottlesByMaterial->first()->id;
+            }
+
+            $version->ingredients()->create([
+                'material_id' => $row['material_id'],
+                'bottle_id' => $bottleId,
+                'drops' => $row['drops'],
+                'dilution' => $row['dilution'],
+            ]);
         }
 
-        // Sort ingredients by pyramid order
-        $ingredients = $version->ingredientsOrdered();
-
-        // total of drops of PURE material (e.g. x3, 10 drops @25 each =  7.5)
-        $pureTotal = $ingredients->sum(function ($ingredient) {
-            return $ingredient->drops * ($ingredient->dilution / 100);
-        });
-
-        return $ingredients->map(function ($ingredient) use ($pureTotal) {
-            // pure amount of material
-            $pure = $ingredient->drops * ($ingredient->dilution / 100); // 2.5
-            // percentage of pure material in the blend
-            $purePercentage = $pureTotal > 0 ? ($pure / $pureTotal) * 100 : 0; // 33.33%
-
-            // Returns a collection of arrays
-            return [
-                'blend_ingredient_id' => $ingredient->id,
-                'material_id' => $ingredient->material_id,
-                'material_name' => $ingredient->material->name,
-                'bottle_id' => $ingredient->bottle_id,
-                'drops' => (string) $ingredient->drops,
-                'dilution' => $ingredient->dilution.'%',
-                'pure_pct' => rtrim(rtrim(number_format($purePercentage, 2, '.', ''), '0'), '.').'%',
-                'variant' => $ingredient->variant(),
-            ];
-        });
+        return $version;
     }
 
     public function updateName(string $name)

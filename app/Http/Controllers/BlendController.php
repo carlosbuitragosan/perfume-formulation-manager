@@ -24,7 +24,7 @@ class BlendController extends Controller
         $data = $request->validated();
 
         // Create blend + version
-        $blend = Blend::createWithIngredients(
+        $blend = Blend::createBlendWithIngredients(
             $data,
             $request->user()->id,
         );
@@ -39,12 +39,14 @@ class BlendController extends Controller
         $this->authorize('view', $blend);
 
         // Return version or null
-        $version = $blend->currentVersion();
+        $versions = $blend->versions()
+            ->with(['ingredients.material'])
+            ->get();
 
         // Return ingredients for display: drops, dilution, pure percetates, labels, etc
-        $blendIngredients = $blend->formattedIngredients($version);
+        // $blendIngredients = $blend->formattedIngredients($version);
 
-        return view('blends.show', compact('blend', 'version', 'blendIngredients'));
+        return view('blends.show', compact('blend', 'versions'));
     }
 
     public function destroy(Blend $blend)

@@ -20,21 +20,22 @@ Route::middleware('auth')
             ->name('dashboard');
 
         // Profile
-        Route::controller(ProfileController::class)->group(function () {
-            Route::get('/profile', 'edit')->name('profile.edit');
-            Route::patch('/profile', 'update')->name('profile.update');
-            Route::delete('/profile', 'destroy')->name('profile.destroy');
-        });
+        Route::controller(ProfileController::class)
+            ->group(function () {
+                Route::get('/profile', 'edit')->name('profile.edit');
+                Route::patch('/profile', 'update')->name('profile.update');
+                Route::delete('/profile', 'destroy')->name('profile.destroy');
+            });
 
         // Materials
         Route::resource('materials', MaterialController::class)
             ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
 
-        // New bottle for a given material
+        // Bottles (create, store)
         Route::resource('materials.bottles', BottleController::class)
             ->only(['create', 'store']);
 
-        // editing / finishing / deleting an existing bottle
+        // (edit, finish, delete )
         Route::prefix('bottles/{bottle}')
             ->controller(BottleController::class)
             ->group(function () {
@@ -50,8 +51,8 @@ Route::middleware('auth')
             ->only(['create', 'store', 'show', 'destroy', 'edit', 'update']);
 
         // Blend versions
-        Route::get('/blends/{blend}/versions/create', [BlendVersionController::class, 'create'])
-            ->name('blends.versions.create');
+        Route::resource('blends.versions', BlendVersionController::class)
+            ->only(['create', 'store']);
 
         // Blend ingredients
         Route::post('/blend-ingredients/{blendIngredient}/bottles/{bottle}',
