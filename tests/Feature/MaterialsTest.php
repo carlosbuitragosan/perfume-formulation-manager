@@ -254,7 +254,7 @@ describe('deleting materials', function () {
         [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
         addIngredient($version, $material);
 
-        // Send request from blends.edit  to materials.destroy + follow redirect
+        // Send request from materials.edit  to materials.destroy + follow redirect
         $response = $this
             ->from(route('materials.edit', $material))
             ->followingRedirects()

@@ -1,8 +1,7 @@
 <x-app-layout>
    <x-slot name="header">
       <div class="flex items-center justify-between">
-         <h2 class="font-semibold text-xl mr-2">{{ $blend->name }}</h2>
-
+         <x-editable-blend-name :blend="$blend" />
          <div>
             <x-link href="{{ route('blends.versions.create', $blend) }}">New Version</x-link>
          </div>
@@ -16,7 +15,7 @@
          @endphp
 
          <div data-testId="blend-version" data-version="{{ $version->version }}" class="card p-4">
-            <div class="font-semibold mb-3 pt-2">{{ $version->version }}</div>
+            <div class="font-semibold mb-3 pt-2">Version {{ $version->version }}</div>
 
             <div class="overflow-x-auto">
                <table class="w-full text-sm border-separate border-spacing-x-3">
@@ -53,7 +52,7 @@
             </div>
 
             <div class="flex gap-2">
-               <x-link href="{{ route('blends.edit', $blend) }}">EDIT</x-link>
+               <x-link href="">EDIT</x-link>
 
                <form
                   method="POST"
@@ -66,7 +65,7 @@
                </form>
             </div>
 
-            @if (session('success'))
+            @if (session('success') && session('version_id') === $version->id)
                <x-flash type="success">{{ session('success') }}</x-flash>
             @endif
          </div>

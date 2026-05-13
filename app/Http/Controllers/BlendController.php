@@ -29,9 +29,11 @@ class BlendController extends Controller
             $request->user()->id,
         );
 
+        $version = $blend->versions()->latest()->first();
+
         return redirect()->route('blends.show', $blend)
-            ->with('success', "{$blend->name} added")
-            ->with('blend_id', $blend->id);
+            ->with('success', "Version {$version->version} added")
+            ->with('version_id', $version->id);
     }
 
     public function show(Blend $blend)
@@ -61,19 +63,6 @@ class BlendController extends Controller
             ->with('blend_id', $blend->id);
     }
 
-    public function edit(Blend $blend)
-    {
-        $this->authorize('update', $blend);
-
-        // Must return a version else 404
-        $version = $blend->currentVersionOrFail();
-
-        // Get all materials for user
-        $materials = Material::forUserOrdered(auth()->id())->get();
-
-        return view('blends.edit', compact('blend', 'version', 'materials'));
-    }
-
     public function update(UpdateBlendRequest $request, Blend $blend)
     {
         $this->authorize('update', $blend);
@@ -82,17 +71,9 @@ class BlendController extends Controller
 
         $blend->updateName($data['name']);
 
-        // Get blend version
-        $version = $blend->currentVersionOrFail();
-
-        // Rebuild ingredients and assign bottles where possible
-        $blend->rebuildIngredients($request->user(), $version, $data['materials']);
-
         // Touch blend to update updated_at timestamp for sorting on UI
         $blend->touch();
 
-        return redirect()->route('blends.show', $blend)
-            ->with('success', "{$blend->name} updated")
-            ->with('blend_id', $blend->id);
+        return redirect()->route('blends.show', $blend);
     }
 }

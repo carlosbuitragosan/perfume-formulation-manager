@@ -121,27 +121,6 @@ describe('Blend Creation (Form & Submission)', function () {
         expect($neroliRow->count())->toBe(1);
         expect($neroliRow->filter('[data-testid="error-materials.1.drops"]')->count())->toBe(1);
     });
-
-    test('Creating new blend shows success message', function () {
-        // create materials
-        $material1 = makeMaterial();
-        $material2 = makeMaterial(['name' => 'petitgrain']);
-        $ingredients = [ingredient($material1), ingredient($material2)];
-
-        // Send request to create message and follow redirects
-        $response = $this
-            ->from(route('blends.create'))
-            ->followingRedirects()
-            ->post(route('blends.store'),
-                blendPayload('test blend', $ingredients));
-
-        // Get HTML for vesion container
-        $response = crawl($response);
-        $versionContainer = $response->filter('div[data-testId="blend-version"]')->first();
-
-        // Assert success message
-        expect($versionContainer->text())->toContain('Test Blend added');
-    });
 });
 
 // ==========================================================
@@ -369,115 +348,21 @@ describe('Blend Deletion', function () {
 // Blend Editing
 // ==========================================================
 describe('Blend Editing', function () {
-    test('user can view the edit form for a blend and it is prefilled', function () {
-        $lavender = makeMaterial();
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
-        addIngredient($version, $lavender, null, 2);
-        addIngredient($version, $neroli, null, 5);
-        [, $crawler] = getPageCrawler($this->user, route('blends.edit', $blend));
-        expect($crawler->filter('input[name="name"]')->attr('value'))->toBe('Moonshine');
-        $rows = $crawler->filter('[data-testid="ingredient-row"]');
-        expect($rows)->count()->toBe(2);
-        $LavenderRow = $rows->reduce(function ($node) use ($lavender) {
-            return $node->filter('option[selected][value="'.$lavender->id.'"]')->count() > 0;
-        });
-        expect($LavenderRow->count())->toBe(1);
-        expect($LavenderRow->filter('input[name*="[drops]"][value="2"]')->count())->toBe(1);
-        expect($LavenderRow->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBe(1);
-        $neroliRow = $rows->reduce(function ($node) use ($neroli) {
-            return $node->filter('option[selected][value="'.$neroli->id.'"]')->count() > 0;
-        });
-        expect($neroliRow->count())->toBe(1);
-        expect($neroliRow->filter('input[name*="[drops]"][value="5"]')->count())->toBe(1);
-        expect($neroliRow->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBe(1);
-    });
+    test("user can update a blend's name", function () {
+        // Create blend + payload
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
 
-    test('user can update a blend from the edit form', function () {
-        $lavender = makeMaterial();
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
-        addIngredient($version, $lavender, null, 2, 25);
-        addIngredient($version, $neroli, null, 5, 25);
-        $payload = blendPayload('Moonshine-2', [
-            ingredient($lavender, [
-                'drops' => 10,
-            ]),
-            ingredient($neroli, [
-                'drops' => 1,
-                'dilution' => 10,
-            ]),
+        // Send request to update blend name
+        $response = patchAs($this->user, route('blends.update', $blend), [
+            'name' => 'New Blend Name',
         ]);
-        $this->put(route('blends.update', $blend), $payload)
-            ->assertRedirect(route('blends.show', $blend));
-        $this->assertDatabaseHas('blends', [
-            'id' => $blend->id,
-            'name' => 'Moonshine-2',
-        ]);
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'drops' => 10,
-            'dilution' => 25,
-        ]);
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $neroli->id,
-            'drops' => 1,
-            'dilution' => 10,
-        ]);
-        $this->assertDatabaseMissing('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'drops' => 2,
-            'dilution' => 25,
-        ]);
-    });
 
-    test('Editing a blend does not change bottle assignments of existing ingredients', function () {
-        $lavender = makeMaterial();
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        $lavenderBottle = makeBottle($lavender);
-        $payload = blendPayload('blendWithBottleId', [
-            ingredient($lavender),
-            ingredient($neroli),
-        ]);
-        $response = postAs($this->user, route('blends.store'), $payload);
-        $blendId = basename($response->headers->get('Location'));
-        $blend = Blend::findOrFail($blendId);
-        $version = $blend->versions()->first();
-        $this->from(route('blends.edit', $blend))
-            ->put(route('blends.update', $blend), ['name' => 'Spice V2']);
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'bottle_id' => $lavenderBottle->id,
-        ]);
-    });
+        // Assert Redirected to blend show page
+        $response->assertRedirect(route('blends.show', $blend));
 
-    test('Editing a blend auto-assings a bottle ID to newly added ingredients if only 1 available bottle exists', function () {
-        $lavender = makeMaterial();
-        $galbanum = makeMaterial(['name' => 'Galbanum']);
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        $lavenderBottle = makeBottle($lavender);
-        $response = postAs($this->user, route('blends.store'), blendPayload('Neroli Blend', [
-            ingredient($neroli),
-            ingredient($galbanum),
-        ]));
-        $blendId = basename($response->headers->get('Location'));
-        $blend = Blend::findOrFail($blendId);
-        $version = $blend->versions()->first();
-        $this->from(route('blends.edit', $blend))
-            ->put(route('blends.update', $blend), blendPayload($blend->name, [
-                ingredient($neroli),
-                ingredient($galbanum),
-                ingredient($lavender),
-            ]));
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'bottle_id' => $lavenderBottle->id,
-        ]);
+        // Assert new name is shown
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        expect($crawler->filter('header')->text())->toContain('New Blend Name');
     });
 
     test('editing a blend does not assign a bottle_id when a new ingredient has multiple available bottles', function () {
@@ -497,58 +382,6 @@ describe('Blend Editing', function () {
             'material_id' => $lavender->id,
             'bottle_id' => null,
         ]);
-    });
-
-    test('Editing a blend does not auto assign bottle ids when materials has more than one bottle available', function () {
-        $lavender = makeMaterial();
-        $galbanum = makeMaterial(['name' => 'Galbanum']);
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        makeBottle($lavender);
-        makeBottle($lavender);
-        $response = postAs($this->user, route('blends.store'), blendPayload('Neroli Blend', [
-            ingredient($neroli),
-            ingredient($galbanum),
-        ]));
-        $blendId = basename($response->headers->get('Location'));
-        $blend = Blend::findOrFail($blendId);
-        $version = $blend->versions()->first();
-        $this->from(route('blends.edit', $blend))
-            ->put(route('blends.update', $blend), blendPayload($blend->name, [
-                ingredient($neroli),
-                ingredient($galbanum),
-                ingredient($lavender),
-            ]));
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'bottle_id' => null,
-        ]);
-    });
-
-    test('Updating a blend shows success message', function () {
-        // Create materials & blend
-        $material1 = makeMaterial();
-        $material2 = makeMaterial(['name' => 'neroli']);
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Blend');
-
-        // Send request to update blend
-        $response = $this
-            ->from(route('blends.show', $blend))
-            ->followingRedirects()
-            ->patch(route('blends.update', $blend),
-                blendPayload('Blend 2', [
-                    ingredient($material1),
-                    ingredient($material2),
-                ])
-            );
-
-        // Get HTML from version container
-        $crawler = crawl($response);
-        $versionContainer = $crawler->filter('div[data-testId="blend-version"]');
-        $blend->refresh();
-
-        // Assert message
-        expect($crawler->text())->toContain("{$blend->name} updated");
     });
 });
 
@@ -672,4 +505,164 @@ describe('blend versioning', function () {
         expect($crawler->filter('div[data-testid="blend-version"]')->count())->toBe(2);
     });
 
+    it('shows success message when a new version is created', function () {
+        // Create blend
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+        // create materials
+        $material1 = makeMaterial();
+        $material2 = makeMaterial(['name' => 'petitgrain']);
+        $ingredients = [ingredient($material1), ingredient($material2)];
+
+        // Send request to create message and follow redirects
+        $response = $this
+            ->from(route('blends.versions.create', $blend))
+            ->followingRedirects()
+            ->post(route('blends.versions.store', $blend), ['materials' => $ingredients]);
+
+        $newVersion = $blend->versions()->latest('id')->first();
+        // Get HTML for vesion container
+        $response = crawl($response);
+        $versionContainer = $response->filter('div[data-version="'.$newVersion->version.'"]');
+
+        // Assert success message
+        expect($versionContainer->text())->toContain('Version 2.0 added');
+    });
+
+    test('Editing a blend does not auto assign bottle ids when materials has more than one bottle available', function () {
+        $lavender = makeMaterial();
+        $galbanum = makeMaterial(['name' => 'Galbanum']);
+        $neroli = makeMaterial(['name' => 'Neroli']);
+        makeBottle($lavender);
+        makeBottle($lavender);
+        $response = postAs($this->user, route('blends.store'), blendPayload('Neroli Blend', [
+            ingredient($neroli),
+            ingredient($galbanum),
+        ]));
+        $blendId = basename($response->headers->get('Location'));
+        $blend = Blend::findOrFail($blendId);
+        $version = $blend->versions()->first();
+        $this->from(route('blends.edit', $blend))
+            ->put(route('blends.update', $blend), blendPayload($blend->name, [
+                ingredient($neroli),
+                ingredient($galbanum),
+                ingredient($lavender),
+            ]));
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $lavender->id,
+            'bottle_id' => null,
+        ]);
+    })->skip();
+
+    test('Editing a blend auto-assings a bottle ID to newly added ingredients if only 1 available bottle exists', function () {
+        $lavender = makeMaterial();
+        $galbanum = makeMaterial(['name' => 'Galbanum']);
+        $neroli = makeMaterial(['name' => 'Neroli']);
+        $lavenderBottle = makeBottle($lavender);
+        $response = postAs($this->user, route('blends.store'), blendPayload('Neroli Blend', [
+            ingredient($neroli),
+            ingredient($galbanum),
+        ]));
+        $blendId = basename($response->headers->get('Location'));
+        $blend = Blend::findOrFail($blendId);
+        $version = $blend->versions()->first();
+        $this->from(route('blends.edit', $blend))
+            ->put(route('blends.update', $blend), blendPayload($blend->name, [
+                ingredient($neroli),
+                ingredient($galbanum),
+                ingredient($lavender),
+            ]));
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $lavender->id,
+            'bottle_id' => $lavenderBottle->id,
+        ]);
+    })->skip();
+
+    test('user can update a blend from the edit form', function () {
+        $lavender = makeMaterial();
+        $neroli = makeMaterial(['name' => 'Neroli']);
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
+        addIngredient($version, $lavender, null, 2, 25);
+        addIngredient($version, $neroli, null, 5, 25);
+        $payload = blendPayload('Moonshine-2', [
+            ingredient($lavender, [
+                'drops' => 10,
+            ]),
+            ingredient($neroli, [
+                'drops' => 1,
+                'dilution' => 10,
+            ]),
+        ]);
+        $this->put(route('blends.update', $blend), $payload)
+            ->assertRedirect(route('blends.show', $blend));
+        $this->assertDatabaseHas('blends', [
+            'id' => $blend->id,
+            'name' => 'Moonshine-2',
+        ]);
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $lavender->id,
+            'drops' => 10,
+            'dilution' => 25,
+        ]);
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $neroli->id,
+            'drops' => 1,
+            'dilution' => 10,
+        ]);
+        $this->assertDatabaseMissing('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $lavender->id,
+            'drops' => 2,
+            'dilution' => 25,
+        ]);
+    })->skip();
+
+    test('Editing a blend does not change bottle assignments of existing ingredients', function () {
+        $lavender = makeMaterial();
+        $neroli = makeMaterial(['name' => 'Neroli']);
+        $lavenderBottle = makeBottle($lavender);
+        $payload = blendPayload('blendWithBottleId', [
+            ingredient($lavender),
+            ingredient($neroli),
+        ]);
+        $response = postAs($this->user, route('blends.store'), $payload);
+        $blendId = basename($response->headers->get('Location'));
+        $blend = Blend::findOrFail($blendId);
+        $version = $blend->versions()->first();
+        $this->from(route('blends.edit', $blend))
+            ->put(route('blends.update', $blend), ['name' => 'Spice V2']);
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $lavender->id,
+            'bottle_id' => $lavenderBottle->id,
+        ]);
+    })->skip();
+
+    test('user can view the edit form for a blend and it is prefilled', function () {
+        $lavender = makeMaterial();
+        $neroli = makeMaterial(['name' => 'Neroli']);
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Moonshine');
+        addIngredient($version, $lavender, null, 2);
+        addIngredient($version, $neroli, null, 5);
+        [, $crawler] = getPageCrawler($this->user, route('blends.edit', $blend));
+        expect($crawler->filter('input[name="name"]')->attr('value'))->toBe('Moonshine');
+        $rows = $crawler->filter('[data-testid="ingredient-row"]');
+        expect($rows)->count()->toBe(2);
+        $LavenderRow = $rows->reduce(function ($node) use ($lavender) {
+            return $node->filter('option[selected][value="'.$lavender->id.'"]')->count() > 0;
+        });
+        expect($LavenderRow->count())->toBe(1);
+        expect($LavenderRow->filter('input[name*="[drops]"][value="2"]')->count())->toBe(1);
+        expect($LavenderRow->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBe(1);
+        $neroliRow = $rows->reduce(function ($node) use ($neroli) {
+            return $node->filter('option[selected][value="'.$neroli->id.'"]')->count() > 0;
+        });
+        expect($neroliRow->count())->toBe(1);
+        expect($neroliRow->filter('input[name*="[drops]"][value="5"]')->count())->toBe(1);
+        expect($neroliRow->filter('select[name*="[dilution]"] option[selected][value="25"]')->count())->toBe(1);
+    })->skip();
 });

@@ -26,6 +26,6 @@ class BlendIngredientController extends Controller
 
         return redirect()->route('blends.show', $blend)
             ->with('success', "Bottle assigned to {$bottle->material->name}")
-            ->with('blend_id', $blend->id);
+            ->with('version_id', $blendIngredient->blendVersion->id);
     }
 }

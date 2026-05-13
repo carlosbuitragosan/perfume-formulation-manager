@@ -42,21 +42,21 @@ class BottleController extends Controller
         // Store files
         $this->storeFiles($request->user(), $bottle, $files);
 
-        // Get the blend
+        // Get the blend ingredient from the request
         $blendIngredient = null;
         $blendIngredientId = $data['ingredient'] ?? null;
         if ($blendIngredientId) {
             $blendIngredient = BlendIngredient::find($blendIngredientId);
         }
 
-        // Check blend ingredient
+        // Assign newly created bottle to the blend ingredient
         if ($blendIngredient && $bottle->assignToBlendIngredient($blendIngredient)) {
 
             $blend = $blendIngredient->blendVersion?->blend;
 
             return redirect()->route('blends.show', $blend)
                 ->with('success', "Bottle assigned to {$material->name}")
-                ->with('blend_id', $blend->id);
+                ->with('version_id', $blendIngredient->blendVersion->id);
         }
 
         return redirect()->route('materials.show', $material)
