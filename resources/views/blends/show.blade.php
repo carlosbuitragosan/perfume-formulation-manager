@@ -29,7 +29,7 @@
                   </thead>
                   <tbody>
                      @foreach ($blendIngredients as $blendIngredient)
-                        <tr data-ingredient-id="{{ $blendIngredient['blend_ingredient_id'] }}">
+                        <tr data-material-id="{{ $blendIngredient['material_id'] }}">
                            <td data-col="material" class="py-2">
                               <x-blend-ingredient-link
                                  :blendIngredient="$blendIngredient"

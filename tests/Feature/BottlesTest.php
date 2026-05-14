@@ -128,7 +128,7 @@ describe('Bottle creation', function () {
 
         // Get HTML from redirect
         $crawler = crawl($response);
-        $blendContainer = $crawler->filter('div[data-version="1.0"]');
+        $blendContainer = $crawler->filter('div[data-version="'.$version->version.'"]');
 
         // Expect message
         expect($blendContainer->text())->toContain("Bottle assigned to {$this->material->name}");
@@ -698,7 +698,7 @@ describe('bottle assignment', function () {
 
         // Get HTML from redirect
         $crawler = crawl($response);
-        $blendContainer = $crawler->filter('div[data-version="1.0"]');
+        $blendContainer = $crawler->filter('div[data-version="'.$version->version.'"]');
 
         // Expect message
         expect($blendContainer->text())->toContain("Bottle assigned to {$this->material->name}");

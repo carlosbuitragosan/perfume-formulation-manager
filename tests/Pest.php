@@ -94,6 +94,18 @@ function blendPayload(string $name, array $ingredients): array
     ];
 }
 
+// build a version request payload
+function versionPayload(array $ingredients): array
+{
+    if (! is_array($ingredients)) {
+        $ingredients = [$ingredients];
+    }
+
+    return [
+        'materials' => $ingredients,
+    ];
+}
+
 // builds one ingredient entry matching the structure expected by the blend request.
 function ingredient(Material $material, array $overrides = []): array
 {
@@ -115,7 +127,7 @@ function makeBlendWithVersion(User $user, string $name = 'Test Blend')
     ]);
 
     $version = $blend->versions()->create([
-        'version' => '1.0',
+        'version' => $blend->nextVersionNumber(),
     ]);
 
     return [$blend, $version];

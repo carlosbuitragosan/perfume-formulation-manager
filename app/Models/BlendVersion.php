@@ -62,4 +62,55 @@ class BlendVersion extends Model
             ];
         });
     }
+
+    public function existingBottleAssignments()
+    {
+        return $this->ingredients
+            ->pluck('bottle_id', 'material_id');
+    }
+
+    public function rebuildIngredients(User $user, $materials)
+    {
+        // Preserve bottle assignments (materialId => bottleId) from DB
+        $existingBottleIds = $this->existingBottleAssignments();
+
+        // Delete ingredients
+        $this->ingredients()->delete();
+
+        // Get the all materials from the request
+        $incomingMaterialIds = collect($materials)
+            ->pluck('material_id');
+
+        // Find all available bottles for all materials in the request (materialId => collection of bottles)
+        $availableBottlesByMaterial = Bottle::where('user_id', $user->id)
+            ->where('is_finished', false)
+            ->WhereIn('material_id', $incomingMaterialIds)
+            ->get()
+            ->groupBy('material_id');
+
+        foreach ($materials as $row) {
+            $materialId = $row['material_id'];
+            $bottleId = null;
+
+            // If ingredient being added already existed in the blend...
+            if ($existingBottleIds->has($materialId)) {
+                // Fetch it from the list and assign a bottle id
+                $bottleId = $existingBottleIds[$materialId];
+            } else {
+                // Fetch available bottles from newly added ingredient
+                $materialBottles = $availableBottlesByMaterial->get($materialId, collect());
+                if ($materialBottles->count() === 1) {
+                    // Assign the bottle ID
+                    $bottleId = $materialBottles->first()->id;
+                }
+            }
+            // Create a new ingredient from existing ones and newly added
+            $this->ingredients()->create([
+                'material_id' => $materialId,
+                'bottle_id' => $bottleId,
+                'drops' => $row['drops'],
+                'dilution' => $row['dilution'],
+            ]);
+        }
+    }
 }

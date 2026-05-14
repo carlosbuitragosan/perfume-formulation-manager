@@ -49,7 +49,7 @@ class Blend extends Model
         ]);
 
         $version = $blend->versions()->create([
-            'version' => '1.0',
+            'version' => $blend->nextVersionNumber(),
         ]);
 
         // Create ingredients for this version
@@ -82,7 +82,7 @@ class Blend extends Model
     public function createVersionWithIngredients(array $data)
     {
         $version = $this->versions()->create([
-            'version' => '2.0',
+            'version' => $this->nextVersionNumber(),
         ]);
 
         // Create ingredients for this version
@@ -112,70 +112,19 @@ class Blend extends Model
         return $version;
     }
 
-    public function updateName(string $name)
-    {
-        // Update blend name
-        $this->update([
-            'name' => $name,
-        ]);
-        $this->touch();
-    }
-
-    public function existingBottleAssignments($version)
-    {
-        return $version->ingredients
-            ->pluck('bottle_id', 'material_id');
-    }
-
-    public function rebuildIngredients(User $user, $version, $materials)
-    {
-        // Preserve bottle assignments (materialId => bottleId) from DB
-        $existingBottleIds = $this->existingBottleAssignments($version);
-
-        // Delete ingredients
-        $version->ingredients()->delete();
-
-        // Get the all materials from the request
-        $incomingMaterialIds = collect($materials)
-            ->pluck('material_id');
-
-        // Find all available bottles for all materials in the request (materialId => collection of bottles)
-        $availableBottlesByMaterial = Bottle::where('user_id', $user->id)
-            ->where('is_finished', false)
-            ->WhereIn('material_id', $incomingMaterialIds)
-            ->get()
-            ->groupBy('material_id');
-
-        foreach ($materials as $row) {
-            $materialId = $row['material_id'];
-            $bottleId = null;
-
-            // If ingredient being added already existed in the blend...
-            if ($existingBottleIds->has($materialId)) {
-                // Fetch it from the list and assign a bottle id
-                $bottleId = $existingBottleIds[$materialId];
-            } else {
-                // Fetch available bottles from newly added ingredient
-                $materialBottles = $availableBottlesByMaterial->get($materialId, collect());
-                if ($materialBottles->count() === 1) {
-                    // Assign the bottle ID
-                    $bottleId = $materialBottles->first()->id;
-                }
-            }
-            // Create a new ingredient from existing ones and newly added
-            $version->ingredients()->create([
-                'material_id' => $materialId,
-                'bottle_id' => $bottleId,
-                'drops' => $row['drops'],
-                'dilution' => $row['dilution'],
-            ]);
-        }
-    }
-
+    // Normalize blend name (e.g. "dark floral" => "Dark Floral")
     protected function name(): Attribute
     {
         return Attribute::make(
             set: fn ($value) => ucwords(strtolower($value))
         );
+    }
+
+    public function nextVersionNumber()
+    {
+        $latestVersion = $this->versions()->latest('created_at')->first();
+        $latestVersionNumber = $latestVersion ? (int) $latestVersion->version : 0;
+
+        return $latestVersionNumber + 1;
     }
 }

@@ -45,9 +45,6 @@ class BlendController extends Controller
             ->with(['ingredients.material'])
             ->get();
 
-        // Return ingredients for display: drops, dilution, pure percetates, labels, etc
-        // $blendIngredients = $blend->formattedIngredients($version);
-
         return view('blends.show', compact('blend', 'versions'));
     }
 
@@ -69,7 +66,9 @@ class BlendController extends Controller
 
         $data = $request->validated();
 
-        $blend->updateName($data['name']);
+        $blend->update([
+            'name' => $data['name'],
+        ]);
 
         // Touch blend to update updated_at timestamp for sorting on UI
         $blend->touch();

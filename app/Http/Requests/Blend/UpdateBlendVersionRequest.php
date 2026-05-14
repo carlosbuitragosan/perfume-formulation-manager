@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateBlendRequest extends FormRequest
+class UpdateBlendVersionRequest extends FormRequest
 {
     protected function prepareForValidation()
     {
@@ -22,7 +22,6 @@ class UpdateBlendRequest extends FormRequest
             ->all();
 
         $this->merge([
-            'name' => trim((string) $this->input('name')),
             'materials' => $materials,
         ]);
     }
@@ -40,7 +39,6 @@ class UpdateBlendRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
             'materials' => ['required', 'array', 'min:2'],
             'materials.*.material_id' => [
                 'required',
@@ -56,7 +54,6 @@ class UpdateBlendRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Enter a blend name',
             'materials.required' => 'Add at least two ingredients',
             'materials.min' => 'Add at least two ingredients',
             'materials.*.material_id.required' => 'Select a material',
