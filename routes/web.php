@@ -5,20 +5,15 @@ use App\Http\Controllers\BlendController;
 use App\Http\Controllers\BlendIngredientController;
 use App\Http\Controllers\BlendVersionController;
 use App\Http\Controllers\BottleController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/dashboard');
+Route::redirect('/', '/blends.index');
 
 // Authenticated routes
 Route::middleware('auth')
     ->group(function () {
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('dashboard');
-
         // Profile
         Route::controller(ProfileController::class)
             ->group(function () {
@@ -48,7 +43,7 @@ Route::middleware('auth')
 
         // Blends
         Route::resource('blends', BlendController::class)
-            ->only(['create', 'store', 'show', 'destroy', 'update']);
+            ->only(['index', 'create', 'store', 'show', 'destroy', 'update']);
 
         // Blend versions
         Route::resource('blends.versions', BlendVersionController::class)

@@ -9,6 +9,15 @@ use App\Models\Material;
 
 class BlendController extends Controller
 {
+    public function index()
+    {
+        $blends = Blend::where('user_id', auth()->id())
+            ->latest('updated_at')
+            ->get();
+
+        return view('blends.index', compact('blends'));
+    }
+
     public function create()
     {
         // Get a collection of all materials for user
@@ -55,7 +64,7 @@ class BlendController extends Controller
         $blend->delete();
 
         return redirect()
-            ->route('dashboard')
+            ->route('blends.index')
             ->with('success', "{$blend->name} deleted")
             ->with('blend_id', $blend->id);
     }

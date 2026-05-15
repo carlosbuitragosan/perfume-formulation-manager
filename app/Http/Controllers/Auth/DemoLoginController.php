@@ -24,6 +24,6 @@ class DemoLoginController extends Controller
         Auth::login($demo);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('blends.index'));
     }
 }

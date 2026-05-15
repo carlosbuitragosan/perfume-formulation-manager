@@ -17,7 +17,7 @@ beforeEach(function () {
 // ==========================================================
 describe('Dashboard & Navigation', function () {
     it('Dashboard shows a "create blend" link that leads to the blend creation page', function () {
-        [, $crawler] = getPageCrawler($this->user, route('dashboard'));
+        [, $crawler] = getPageCrawler($this->user, route('blends.index'));
         $link = $crawler->selectLink('Create Blend');
         expect($link->count())->toBe(1);
         expect($link->link()->getUri())->toContain('/blends/create');
@@ -28,7 +28,7 @@ describe('Dashboard & Navigation', function () {
             'user_id' => $this->user->id,
             'name' => 'Sunshine',
         ]);
-        [, $crawler] = getPageCrawler($this->user, route('dashboard'));
+        [, $crawler] = getPageCrawler($this->user, route('blends.index'));
         $link = $crawler->selectLink($blend->name);
         expect($link->count())->toBe(1);
         expect($link->text())->toContain('Sunshine');
@@ -301,7 +301,7 @@ describe('Blend Deletion', function () {
     test('user can delete a blend', function () {
         [$blend] = makeBlendWithVersion($this->user, 'Moonshine');
         $response = $this->delete(route('blends.destroy', $blend))
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('blends.index'));
         $this->assertDatabaseMissing('blends', [
             'id' => $blend->id,
         ]);

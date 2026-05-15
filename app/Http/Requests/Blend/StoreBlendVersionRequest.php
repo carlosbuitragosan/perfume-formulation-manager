@@ -24,6 +24,10 @@ class StoreBlendVersionRequest extends FormRequest
             })
             ->values()
             ->all();
+
+        $this->merge([
+            'materials' => $materials,
+        ]);
     }
 
     public function authorize(): bool
