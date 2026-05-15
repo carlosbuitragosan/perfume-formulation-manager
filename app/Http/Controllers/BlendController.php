@@ -82,6 +82,6 @@ class BlendController extends Controller
         // Touch blend to update updated_at timestamp for sorting on UI
         $blend->touch();
 
-        return redirect()->route('blends.show', $blend);
+        return redirect()->route('blends.index');
     }
 }

@@ -17,12 +17,25 @@
       @if ($blends->isNotEmpty())
          <div class="space-y-3">
             @foreach ($blends as $blend)
-               <a
-                  href="{{ route('blends.show', $blend) }}"
-                  class="card card-hover card-focus block px-4 py-3 rounded-md text-sm font-semibold"
+               <div
+                  class="relative"
+                  x-data="{ editing: {{ $errors->has('name') ? 'true' : 'false' }} }"
                >
-                  {{ $blend->name }}
-               </a>
+                  <a
+                     href="{{ route('blends.show', $blend) }}"
+                     class="card card-hover card-focus block px-4 py-3 rounded-md text-sm font-semibold"
+                  >
+                     <x-editable-blend-name :blend="$blend" />
+                  </a>
+                  <div class="absolute top-2 right-2">
+                     @include(
+                        'blends.partials.actions-dropdown',
+                        [
+                           'blend' => $blend,
+                        ]
+                     )
+                  </div>
+               </div>
             @endforeach
          </div>
       @endif

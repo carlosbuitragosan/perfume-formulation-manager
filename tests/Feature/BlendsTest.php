@@ -357,7 +357,7 @@ describe('Blend Editing', function () {
         ]);
 
         // Assert Redirected to blend show page
-        $response->assertRedirect(route('blends.show', $blend));
+        $response->assertRedirect(route('blends.index'));
 
         // Assert new name is shown
         [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));

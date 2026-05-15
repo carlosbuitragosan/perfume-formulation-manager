@@ -1,12 +1,8 @@
 @props([
    'blend',
 ])
-<div x-data="{ editing: {{ $errors->has('name') ? 'true' : 'false' }} }">
-   <h2
-      x-show="!editing"
-      class="font-semibold text-xl mr-2 cursor-pointer"
-      @click="editing = true; $nextTick(() => { $refs.input.focus(); $refs.input.setSelectionRange($refs.input.value.length, $refs.input.value.length) })"
-   >
+<div>
+   <h2 x-show="!editing" class="mr-2 cursor-pointer">
       {{ $blend->name }}
    </h2>
    <div x-show="editing">
@@ -15,9 +11,9 @@
          @method('PUT')
 
          {{-- BLEND NAME --}}
-         <label class="border-b border-gray-400 block">
+         <label class="border-b border-gray-400 inline-block">
             <input
-               class="focus:ring-0 focus:ring-offset-0 w-full font-semibold text-xl border-none p-0"
+               class="focus:ring-0 focus:ring-offset-0 border-none p-0"
                value="{{ old('name', $blend->name) }}"
                type="text"
                name="name"

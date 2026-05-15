@@ -1,7 +1,7 @@
 <x-app-layout>
    <x-slot name="header">
       <div class="flex items-center justify-between">
-         <x-editable-blend-name :blend="$blend" />
+         <h2 class="font-semibold text-xl mr-2">{{ $blend->name }}</h2>
          <div>
             <x-link href="{{ route('blends.versions.create', $blend) }}">New Version</x-link>
          </div>
