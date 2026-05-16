@@ -9,7 +9,9 @@ use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/blends.index');
+Route::get('/', function () {
+    return redirect()->route('blends.index');
+});
 
 // Authenticated routes
 Route::middleware('auth')
