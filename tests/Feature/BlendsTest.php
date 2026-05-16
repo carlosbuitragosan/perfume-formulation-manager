@@ -29,9 +29,9 @@ describe('Dashboard & Navigation', function () {
             'name' => 'Sunshine',
         ]);
         [, $crawler] = getPageCrawler($this->user, route('blends.index'));
-        $link = $crawler->selectLink($blend->name);
-        expect($link->count())->toBe(1);
-        expect($link->text())->toContain('Sunshine');
+        $blendContainer = $crawler->filter('[data-blend-id="'.$blend->id.'"]');
+        expect($blendContainer->count())->toBe(1);
+        expect($blendContainer->text())->toContain('Sunshine');
     });
 });
 
