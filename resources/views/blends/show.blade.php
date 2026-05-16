@@ -2,9 +2,6 @@
    <x-slot name="header">
       <div class="flex items-center justify-between">
          <h2 class="font-semibold text-xl mr-2">{{ $blend->name }}</h2>
-         <div>
-            <x-link href="{{ route('blends.versions.create', $blend) }}">New Version</x-link>
-         </div>
       </div>
    </x-slot>
 
@@ -14,7 +11,13 @@
             $blendIngredients = $version->formattedIngredients();
          @endphp
 
-         <div data-testId="blend-version" data-version="{{ $version->version }}" class="card p-4">
+         <div
+            id="version-{{ $version->id }}"
+            data-testId="blend-version"
+            data-version="{{ $version->version }}"
+            tabindex="0"
+            class="card card-hover card-focus px-3 py-3"
+         >
             <div class="font-semibold mb-3 pt-2">Version {{ $version->version }}</div>
 
             <div class="overflow-x-auto">
@@ -52,7 +55,7 @@
             </div>
 
             <div class="flex gap-2">
-               <x-link href="">EDIT</x-link>
+               <x-link :href="route('blends.versions.edit', [$blend, $version])">EDIT</x-link>
 
                <form
                   method="POST"
@@ -63,6 +66,10 @@
                   @method('DELETE')
                   <x-danger-button>DELETE</x-danger-button>
                </form>
+
+               <x-link :href="route('blends.versions.create', [$blend, 'from' => $version->id])">
+                  New Version
+               </x-link>
             </div>
 
             @if (session('success') && session('version_id') === $version->id)

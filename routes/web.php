@@ -49,7 +49,7 @@ Route::middleware('auth')
 
         // Blend versions
         Route::resource('blends.versions', BlendVersionController::class)
-            ->only(['create', 'store', 'update']);
+            ->only(['create', 'store', 'edit', 'update']);
 
         // Blend ingredients
         Route::post('/blend-ingredients/{blendIngredient}/bottles/{bottle}',

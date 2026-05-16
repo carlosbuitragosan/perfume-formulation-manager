@@ -35,7 +35,7 @@ class MaterialController extends Controller
 
         return redirect()
             ->route('materials.index')
-            ->withFragment('#material-'.$material->id)
+            ->withFragment('material-'.$material->id)
             ->with('success', "{$material->name} added")
             ->with('material_id', $material->id);
     }
@@ -59,7 +59,7 @@ class MaterialController extends Controller
 
         return redirect()
             ->route('materials.index')
-            ->withFragment('#material-'.$material->id)
+            ->withFragment('material-'.$material->id)
             ->with('success', "{$material->name} updated")
             ->with('material_id', $material->id);
     }

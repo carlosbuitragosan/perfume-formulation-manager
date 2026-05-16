@@ -11,14 +11,16 @@ beforeEach(function () {
     $this->actingAs($this->user);
 });
 
-it('shows a link to create a new version for the blend', function () {
+it('shows a link to create a new version from an existing version', function () {
     // Create blend
     [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
     // get HTML from blend show page
     [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+
     // Assert href to create new blend version is present
-    $link = $crawler->selectLink('New Version');
-    expect($link->link()->getUri())->toBe(route('blends.versions.create', $blend));
+    $versionContainer = $crawler->filter('div[data-version="'.$version->version.'"]');
+    $link = $versionContainer->selectLink('New Version');
+    expect($link->link()->getUri())->toBe(route('blends.versions.create', [$blend, 'from' => $version->id]));
 });
 
 it('shows the blend version creation form for an existing blend', function () {
@@ -124,7 +126,7 @@ test('user can update an existing version', function () {
     $versionContainer = $crawler->filter('div[data-version="'.$version->version.'"]');
 
     // Assert redirect
-    $response->assertRedirect(route('blends.show', $blend));
+    $response->assertRedirect(route('blends.show', $blend).'#version-'.$version->id);
 
     // Assert ingredients are updated
     $lavender = $versionContainer->filter('tr[data-material-id="'.$lavender->id.'"]');

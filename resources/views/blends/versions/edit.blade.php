@@ -5,25 +5,13 @@
    </x-slot>
 
    <div class="p-4">
-      <form method="POST" action="{{ route('blends.update', $blend) }}" class="space-y-3">
+      <form
+         method="POST"
+         action="{{ route('blends.versions.update', [$blend, $version]) }}"
+         class="space-y-3"
+      >
          @csrf
          @method('PUT')
-
-         {{-- BLEND NAME --}}
-         <label class="block">
-            <span class="text-sm">Blend Name</span>
-            <input
-               type="text"
-               name="name"
-               value="{{ old('name', $blend->name) }}"
-               class="p-2 w-full"
-            />
-         </label>
-         @error('name')
-            <div data-testid="error-name">
-               <x-flash type="error" class="">{{ $message }}</x-flash>
-            </div>
-         @enderror
 
          <h3 class="font-medium">Ingredients</h3>
          @error('materials')

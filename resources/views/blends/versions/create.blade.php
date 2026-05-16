@@ -1,4 +1,25 @@
 <x-app-layout>
+   @php
+      $sourceVersion = $sourceVersion ?? null;
+      $formMaterials = old(
+         'materials',
+         $sourceVersion
+            ? $sourceVersion->ingredients
+               ->map(
+                  fn ($ingredient) => [
+                     'material_id' => $ingredient->material_id,
+                     'drops' => $ingredient->drops,
+                     'dilution' => $ingredient->dilution,
+                  ],
+               )
+               ->toArray()
+            : [
+               ['material_id' => '', 'drops' => '', 'dilution' => 25],
+               ['material_id' => '', 'drops' => '', 'dilution' => 25],
+            ],
+      );
+   @endphp
+
    <x-slot name="header">
       <div>
          <h2 class="font-semibold text-xl">{{ $blend->name }}</h2>
@@ -21,20 +42,9 @@
             </div>
          @enderror
 
-         @php
-            $oldMaterials = old('materials');
-            $rows =
-               is_array($oldMaterials) && count($oldMaterials)
-                  ? $oldMaterials
-                  : [
-                     ['material_id' => '', 'drops' => '', 'dilution' => 25],
-                     ['material_id' => '', 'drops' => '', 'dilution' => 25],
-                  ];
-         @endphp
-
          {{-- INGREDIENTS --}}
          <div class="space-y-6" data-testid="ingredients-container">
-            @foreach ($rows as $index => $row)
+            @foreach ($formMaterials as $index => $row)
                <div
                   class="flex flex-col gap-3"
                   data-testid="ingredient-row"
@@ -131,7 +141,7 @@
             <x-primary-button type="submit" class="bg-green-600 hover:bg-green-700">
                SAVE
             </x-primary-button>
-            <x-cancel-link href="{{ route('blends.index') }}">CANCEL</x-cancel-link>
+            <x-cancel-link href="{{ route('blends.show', $blend) }}">CANCEL</x-cancel-link>
          </div>
       </form>
    </div>

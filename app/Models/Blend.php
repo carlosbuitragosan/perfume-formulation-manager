@@ -127,4 +127,11 @@ class Blend extends Model
 
         return $latestVersionNumber + 1;
     }
+
+    public function versionToClone(int $versionId): BlendVersion
+    {
+        return $this->versions()
+            ->with('ingredients')
+            ->findOrFail($versionId);
+    }
 }
