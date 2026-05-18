@@ -19,6 +19,6 @@ class BlendVersionPolicy
 
     public function delete(User $user, BlendVersion $blendVersion): bool
     {
-        return false;
+        return $user->id === $blendVersion->blend->user_id;
     }
 }

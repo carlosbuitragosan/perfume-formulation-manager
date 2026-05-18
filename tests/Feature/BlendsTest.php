@@ -271,19 +271,6 @@ describe('Blend Display & Breakdown', function () {
 
     });
 
-    it('it displays version actions within the blend version card', function () {
-        // Create blend
-        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
-
-        // Get HTML from blend show page and version container
-        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
-        $versionCard = $crawler->filter('div[data-testid="blend-version"][data-version="'.$version->version.'"]');
-
-        // Assert version actions are within the blend version card
-        expect($versionCard->filter('a')->text())->toContain('EDIT');
-        expect($versionCard->filter('form')->text())->toContain('DELETE');
-    });
-
     it('it displays a link to create a new blend version', function () {
         // Create blend
         [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
@@ -312,9 +299,14 @@ describe('Blend Deletion', function () {
         [$blend] = makeBlendWithVersion($this->user, 'Blend');
 
         // Get HTML from blends show page for the delete form
-        [, $crawler] = getPagecrawler($this->user, route('blends.show', $blend));
-        $form = $crawler
-            ->selectButton('DELETE')
+        [, $crawler] = getPagecrawler($this->user, route('blends.index'));
+
+        // Get the blend container and the delete form's onsubmit attribute
+        $blendContainer = $crawler->filter('[data-blend-id="'.$blend->id.'"]');
+        expect($blendContainer->count())->toBe(1);
+
+        $form = $blendContainer
+            ->selectButton('Delete Blend')
             ->ancestors()
             ->filter('form')
             ->first();
@@ -322,7 +314,6 @@ describe('Blend Deletion', function () {
 
         // Assert confirmation
         expect($onsubmit)->toContain("Delete {$blend->name}?");
-
     });
 
     test('shows confirmation when a blend has been deleted', function () {
@@ -364,24 +355,6 @@ describe('Blend Editing', function () {
         expect($crawler->filter('header')->text())->toContain('New Blend Name');
     });
 
-    test('editing a blend does not assign a bottle_id when a new ingredient has multiple available bottles', function () {
-        $lavender = makeMaterial();
-        $neroli = makeMaterial(['name' => 'Neroli']);
-        makeBottle($lavender);
-        makeBottle($lavender);
-        $response = postAs($this->user, route('blends.store'), blendPayload('Neroli Blend', [
-            ingredient($neroli),
-            ingredient($lavender),
-        ]));
-        $blendId = basename($response->headers->get('Location'));
-        $blend = Blend::findOrFail($blendId);
-        $version = $blend->versions()->first();
-        $this->assertDatabaseHas('blend_ingredients', [
-            'blend_version_id' => $version->id,
-            'material_id' => $lavender->id,
-            'bottle_id' => null,
-        ]);
-    });
 });
 
 // ==========================================================
@@ -409,6 +382,25 @@ describe('Database Schema', function () {
             'blend_version_id' => $version->id,
             'material_id' => $lavender->id,
             'bottle_id' => $lavenderBottle->id,
+        ]);
+    });
+
+    test('creating a blend does not assign a bottle_id when a new ingredient has multiple available bottles', function () {
+        $lavender = makeMaterial();
+        $neroli = makeMaterial(['name' => 'Neroli']);
+        makeBottle($lavender);
+        makeBottle($lavender);
+        $response = postAs($this->user, route('blends.store'), blendPayload('Neroli Blend', [
+            ingredient($neroli),
+            ingredient($lavender),
+        ]));
+        $blendId = basename($response->headers->get('Location'));
+        $blend = Blend::findOrFail($blendId);
+        $version = $blend->versions()->first();
+        $this->assertDatabaseHas('blend_ingredients', [
+            'blend_version_id' => $version->id,
+            'material_id' => $lavender->id,
+            'bottle_id' => null,
         ]);
     });
 });

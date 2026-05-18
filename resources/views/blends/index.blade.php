@@ -18,7 +18,7 @@
          <div class="space-y-3">
             @foreach ($blends as $blend)
                <div
-                  data-testiid="blend-card"
+                  data-testid="blend-card"
                   data-blend-id="{{ $blend->id }}"
                   class="relative"
                   x-data="{ editing: {{ $errors->has('name') ? 'true' : 'false' }} }"

@@ -5,6 +5,11 @@
       </div>
    </x-slot>
 
+   {{-- Succes delete version --}}
+   @if (session('success') && ! session('version_id'))
+      <x-flash type="success">{{ session('success') }}</x-flash>
+   @endif
+
    <div class="p-4 space-y-4">
       @foreach ($versions as $version)
          @php
@@ -59,8 +64,12 @@
 
                <form
                   method="POST"
-                  action=""
-                  onsubmit="return confirm('Delete {{ $blend->name }}?');"
+                  action="{{ route('blends.versions.destroy', [$blend, $version]) }}"
+                  onsubmit="
+                     return confirm(
+                        'Delete {{ $blend->name }}\'s Version {{ $version->version }}?',
+                     );
+                  "
                >
                   @csrf
                   @method('DELETE')

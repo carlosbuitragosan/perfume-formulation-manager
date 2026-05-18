@@ -67,4 +67,15 @@ class BlendVersionController extends Controller
             ->with('success', "Version {$version->version} updated")
             ->with('version_id', $version->id);
     }
+
+    public function destroy(Blend $blend, BlendVersion $version)
+    {
+        $this->authorize('delete', $version);
+
+        $version->delete();
+
+        return redirect()
+            ->route('blends.show', $blend)
+            ->with('success', "Version {$version->version} deleted");
+    }
 }

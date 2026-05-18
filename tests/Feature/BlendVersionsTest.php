@@ -342,3 +342,48 @@ test('Editing a blend version does not change bottle assignments of existing ing
         'bottle_id' => $lavenderBottle->id,
     ]);
 });
+
+it('it displays version actions within the blend version card', function () {
+    // Create blend
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+    // Get HTML from blend show page and version container
+    [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+    $versionCard = $crawler->filter('div[data-testid="blend-version"][data-version="'.$version->version.'"]');
+
+    // Assert version actions are within the blend version card
+    expect($versionCard->filter('a')->text())->toContain('EDIT');
+    expect($versionCard->filter('form')->text())->toContain('DELETE');
+});
+
+test('user can delete a blend version', function () {
+    // Create materials,  blend + 2 versions
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'Neroli']);
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+    addIngredient($version, $lavender);
+    addIngredient($version, $neroli);
+
+    // Send request to delete version
+    $response = $this->from(route('blends.show', $blend))
+        ->delete(route('blends.versions.destroy', [$blend, $version]));
+
+    // Assert version is deleted and version
+    expect(BlendVersion::find($version->id))->toBeNull();
+
+    // Assert redirect to blend show page
+    $response->assertRedirect(route('blends.show', $blend));
+});
+
+test('deleting a blend version shows a success message', function () {
+    // Create blend + version
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+    // Send request to delete version and follow redirects
+    $response = $this->from(route('blends.show', $blend))
+        ->followingRedirects()
+        ->delete(route('blends.versions.destroy', [$blend, $version]));
+
+    // Assert success message is shown
+    $response->assertSee("Version {$version->version} deleted");
+});

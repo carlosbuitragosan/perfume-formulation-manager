@@ -113,11 +113,4 @@ class BlendVersion extends Model
             ]);
         }
     }
-
-    public function versionToClone(int $versionId): BlendVersion
-    {
-        return $this->versions()
-            ->with('ingredients')
-            ->findOrFail($versionId);
-    }
 }
