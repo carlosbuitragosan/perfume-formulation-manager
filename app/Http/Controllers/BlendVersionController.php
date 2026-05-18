@@ -34,6 +34,7 @@ class BlendVersionController extends Controller
         $version = $blend->createVersionWithIngredients($data);
 
         return redirect()->route('blends.show', $blend)
+            ->withFragment('version-'.$version->id)
             ->with('success', "Version {$version->version} added")
             ->with('version_id', $version->id);
     }
