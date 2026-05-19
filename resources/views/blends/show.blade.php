@@ -62,19 +62,21 @@
             <div class="flex gap-2">
                <x-link :href="route('blends.versions.edit', [$blend, $version])">EDIT</x-link>
 
-               <form
-                  method="POST"
-                  action="{{ route('blends.versions.destroy', [$blend, $version]) }}"
-                  onsubmit="
-                     return confirm(
-                        'Delete {{ $blend->name }}\'s Version {{ $version->version }}?',
-                     );
-                  "
-               >
-                  @csrf
-                  @method('DELETE')
-                  <x-danger-button>DELETE</x-danger-button>
-               </form>
+               @if ($blend->versions->count() > 1)
+                  <form
+                     method="POST"
+                     action="{{ route('blends.versions.destroy', [$blend, $version]) }}"
+                     onsubmit="
+                        return confirm(
+                           'Delete {{ $blend->name }}\'s Version {{ $version->version }}?',
+                        );
+                     "
+                  >
+                     @csrf
+                     @method('DELETE')
+                     <x-danger-button>DELETE</x-danger-button>
+                  </form>
+               @endif
 
                <x-link :href="route('blends.versions.create', [$blend, 'from' => $version->id])">
                   New Version

@@ -344,46 +344,78 @@ test('Editing a blend version does not change bottle assignments of existing ing
 });
 
 it('it displays version actions within the blend version card', function () {
-    // Create blend
+    // Create blend + 2 versions
     [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+    $version2 = $blend->versions()->create([
+        'version' => $blend->nextVersionNumber(),
+    ]);
 
     // Get HTML from blend show page and version container
     [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
     $versionCard = $crawler->filter('div[data-testid="blend-version"][data-version="'.$version->version.'"]');
 
     // Assert version actions are within the blend version card
-    expect($versionCard->filter('a')->text())->toContain('EDIT');
-    expect($versionCard->filter('form')->text())->toContain('DELETE');
+    expect($versionCard->selectLink('EDIT')->count())->toBe(1);
+    expect($versionCard->selectLink('New Version')->count())->toBe(1);
+    expect($versionCard->selectButton('DELETE')->count())->toBe(1);
 });
 
 test('user can delete a blend version', function () {
     // Create materials,  blend + 2 versions
-    $lavender = makeMaterial();
-    $neroli = makeMaterial(['name' => 'Neroli']);
-    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
-    addIngredient($version, $lavender);
-    addIngredient($version, $neroli);
+    [$blend, $version1] = makeBlendWithVersion($this->user, 'Test Blend');
+
+    $version2 = $blend->versions()->create([
+        'version' => $blend->nextVersionNumber(),
+    ]);
 
     // Send request to delete version
     $response = $this->from(route('blends.show', $blend))
-        ->delete(route('blends.versions.destroy', [$blend, $version]));
+        ->delete(route('blends.versions.destroy', [$blend, $version2]));
 
     // Assert version is deleted and version
-    expect(BlendVersion::find($version->id))->toBeNull();
+    expect(BlendVersion::find($version2->id))->toBeNull();
 
     // Assert redirect to blend show page
     $response->assertRedirect(route('blends.show', $blend));
 });
 
 test('deleting a blend version shows a success message', function () {
-    // Create blend + version
-    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+    // Create blend + 2 versions
+    [$blend, $version1] = makeBlendWithVersion($this->user, 'Test Blend');
+    $version2 = $blend->versions()->create([
+        'version' => $blend->nextVersionNumber(),
+    ]);
 
     // Send request to delete version and follow redirects
     $response = $this->from(route('blends.show', $blend))
         ->followingRedirects()
-        ->delete(route('blends.versions.destroy', [$blend, $version]));
+        ->delete(route('blends.versions.destroy', [$blend, $version1]));
 
     // Assert success message is shown
-    $response->assertSee("Version {$version->version} deleted");
+    $response->assertSee("Version {$version1->version} deleted");
+});
+
+it('hides the delete button when a blend only has one version', function () {
+    // Create blend + version
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+    // Get HTML from blend show page and version container
+    [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+    $versionCard = $crawler->filter('div[data-version="'.$version->version.'"]');
+
+    // Assert delete button is not present
+    expect($versionCard->selectButton('DELETE')->count())->toBe(0);
+});
+
+test('prevent deleting the only version of a blend', function () {
+    // Create blend + version
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+    // Send request to delete the only version of the blend
+    $response = $this->from(route('blends.show', $blend))
+        ->followingRedirects()
+        ->delete(route('blends.versions.destroy', [$blend, $version]));
+
+    // Assert version is not deleted
+    expect(BlendVersion::find($version->id))->not()->toBeNull();
 });

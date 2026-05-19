@@ -72,6 +72,12 @@ class BlendVersionController extends Controller
     {
         $this->authorize('delete', $version);
 
+        if ($blend->versions()->count() <= 1) {
+            return redirect()
+                ->route('blends.show', $blend)
+                ->with('error', 'Cannot delete the only version of a blend');
+        }
+
         $version->delete();
 
         return redirect()
