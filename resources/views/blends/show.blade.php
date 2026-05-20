@@ -10,6 +10,10 @@
       <x-flash type="success">{{ session('success') }}</x-flash>
    @endif
 
+   @if (session('error'))
+      <x-flash type="error">{{ session('error') }}</x-flash>
+   @endif
+
    <div class="p-4 space-y-4">
       @foreach ($versions as $version)
          @php
@@ -21,7 +25,7 @@
             data-testId="blend-version"
             data-version="{{ $version->version }}"
             tabindex="0"
-            class="card card-hover card-focus px-3 py-3"
+            class="relative card px-3 py-3"
          >
             <div class="font-semibold mb-3 pt-2">Version {{ $version->version }}</div>
 
@@ -59,30 +63,13 @@
                </table>
             </div>
 
-            <div class="flex gap-2">
-               <x-link :href="route('blends.versions.edit', [$blend, $version])">EDIT</x-link>
-
-               @if ($blend->versions->count() > 1)
-                  <form
-                     method="POST"
-                     action="{{ route('blends.versions.destroy', [$blend, $version]) }}"
-                     onsubmit="
-                        return confirm(
-                           'Delete {{ $blend->name }}\'s Version {{ $version->version }}?',
-                        );
-                     "
-                  >
-                     @csrf
-                     @method('DELETE')
-                     <x-danger-button>DELETE</x-danger-button>
-                  </form>
-               @endif
-
-               <x-link :href="route('blends.versions.create', [$blend, 'from' => $version->id])">
-                  New Version
-               </x-link>
+            {{-- Dropdown --}}
+            <div class="absolute top-2 right-2">
+               @include(
+               'blends.versions.partials.actions-dropdown', ['version' => $version]               )
             </div>
 
+            {{-- Success message for version update --}}
             @if (session('success') && session('version_id') === $version->id)
                <x-flash type="success">{{ session('success') }}</x-flash>
             @endif

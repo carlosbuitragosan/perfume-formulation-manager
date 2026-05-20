@@ -355,9 +355,9 @@ it('it displays version actions within the blend version card', function () {
     $versionCard = $crawler->filter('div[data-testid="blend-version"][data-version="'.$version->version.'"]');
 
     // Assert version actions are within the blend version card
-    expect($versionCard->selectLink('EDIT')->count())->toBe(1);
+    expect($versionCard->selectLink('Edit Version')->count())->toBe(1);
     expect($versionCard->selectLink('New Version')->count())->toBe(1);
-    expect($versionCard->selectButton('DELETE')->count())->toBe(1);
+    expect($versionCard->selectButton('Delete Version')->count())->toBe(1);
 });
 
 test('user can delete a blend version', function () {
