@@ -275,16 +275,17 @@ describe('deleting materials', function () {
 
 describe('materials index listing and navigation', function () {
     it('links each material on the index to its edit page', function () {
+        // Make material
         $material = makeMaterial();
-        $indexUrl = route('materials.index');
-        $editUrl = route('materials.edit', $material);
-        [$response, $crawler] = getPageCrawler($this->user, $indexUrl);
+
+        // Get HTML for materials index page and filter for material div
+        [$response, $crawler] = getPageCrawler($this->user, route('materials.index'));
         $materialDiv = $crawler->filter("div#material-{$material->id}");
-        $href = $materialDiv->filter('a')->attr('href');
-        expect($materialDiv->count())->toBe(1);
-        expect($href)->toBe($editUrl);
+
+        // Assert link to edit page
+        expect($materialDiv->selectLink('Edit Material')->count())->toBe(1);
+        expect($materialDiv->selectLink('Edit Material')->link()->getUri())->toBe(route('materials.edit', $material));
     });
-    // ... rest of tests from materials index listing ...
 });
 
 describe('search and filtering', function () {

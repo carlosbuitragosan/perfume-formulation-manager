@@ -105,9 +105,10 @@ class MaterialController extends Controller
                 ->with('success', "{$material->name} deleted");
         } catch (QueryException $e) {
             return redirect()
-                ->route('materials.edit', $material)
-                ->with('error', "{$material->name} is in use and cannot be deleted");
+                ->route('materials.index')
+                ->with('error', "{$material->name} is in use and cannot be deleted")
+                ->with('material_id', $material->id)
+                ->withFragment('material-'.$material->id);
         }
-
     }
 }
