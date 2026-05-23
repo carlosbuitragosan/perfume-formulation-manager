@@ -9,6 +9,9 @@
       </button>
    </x-slot>
    <x-slot name="content">
+      <x-dropdown-link :href="route('blend-versions.perfumes.create', $version)">
+         Create Perfume
+      </x-dropdown-link>
       <x-dropdown-link :href="route('blends.versions.create', [$blend, 'from' => $version->id])">
          New Version
       </x-dropdown-link>

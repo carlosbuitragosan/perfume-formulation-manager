@@ -6,6 +6,7 @@ use App\Http\Controllers\BlendIngredientController;
 use App\Http\Controllers\BlendVersionController;
 use App\Http\Controllers\BottleController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\PerfumeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,7 +33,7 @@ Route::middleware('auth')
         Route::resource('materials.bottles', BottleController::class)
             ->only(['create', 'store']);
 
-        // (edit, finish, delete )
+        // Bottles(edit, finish, delete )
         Route::prefix('bottles/{bottle}')
             ->controller(BottleController::class)
             ->group(function () {
@@ -55,6 +56,10 @@ Route::middleware('auth')
         Route::post('/blend-ingredients/{blendIngredient}/bottles/{bottle}',
             [BlendIngredientController::class, 'assignBottle'])
             ->name('blend-ingredients.assign-bottle');
+
+        // Perfumes
+        Route::resource('blend-versions.perfumes', PerfumeController::class)
+            ->only(['create']);
     });
 
 Route::post('/demo-login', [DemoLoginController::class, 'store'])

@@ -160,6 +160,30 @@ describe('Blend Display & Breakdown', function () {
         expect($galbanumRow->filter('[data-col="pure_pct"]')->text())->toBe('50%');
     });
 
+    test('calculates pure percentages correctly for ingredients with different drops and dilutions', function () {
+        // Create materials
+        $lavender = makeMaterial();
+        $galbanum = makeMaterial(['name' => 'Galbanum']);
+        $neroli = makeMaterial(['name' => 'Neroli']);
+
+        // Create blend + version
+        [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+        addIngredient($version, $lavender, null, 4, 25);
+        addIngredient($version, $galbanum, null, 8, 1);
+        addIngredient($version, $neroli, null, 1, 25);
+
+        // Get show page HTML + filter for ingredient rows
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        $lavenderRow = $crawler->filter('tr[data-material-id="'.$lavender->id.'"]');
+        $galbanumRow = $crawler->filter('tr[data-material-id="'.$galbanum->id.'"]');
+        $neroliRow = $crawler->filter('tr[data-material-id="'.$neroli->id.'"]');
+
+        // Expect pure % breakdown to be correct
+        expect($lavenderRow->filter('[data-col="pure_pct"]')->text())->toBe('75.19%');
+        expect($galbanumRow->filter('[data-col="pure_pct"]')->text())->toBe('6.02%');
+        expect($neroliRow->filter('[data-col="pure_pct"]')->text())->toBe('18.8%');
+    });
+
     test('blend show indicates which ingredients have a bottle assigned', function () {
         // Create ingredients, bottle & blend
         $lavender = makeMaterial();
