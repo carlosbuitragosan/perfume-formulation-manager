@@ -25,22 +25,6 @@ class Blend extends Model
         return $this->hasMany(BlendVersion::class);
     }
 
-    public function currentVersion()
-    {
-        return $this->versions()
-            ->where('version', '1.0')
-            ->with(['ingredients.material'])
-            ->first(); // return version or null
-    }
-
-    public function CurrentVersionOrFail()
-    {
-        return $this->versions()
-            ->where('version', '1.0')
-            ->with(['ingredients.material'])
-            ->firstOrFail(); // return version or 404
-    }
-
     public static function createBlendWithIngredients(array $data, int $userId)
     {
         $blend = self::create([

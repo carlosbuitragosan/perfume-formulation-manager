@@ -4,7 +4,8 @@
       $formMaterials = old(
          'materials',
          $sourceVersion
-            ? $sourceVersion->ingredients
+            ? $sourceVersion
+               ->ingredientsOrdered()
                ->map(
                   fn ($ingredient) => [
                      'material_id' => $ingredient->material_id,

@@ -85,7 +85,7 @@ it('when creating a new version, the create form is prefilled from an existing v
     expect($rows->filter('option[selected][value="'.$neroli->id.'"]')->count())->toBe(1);
 });
 
-it('creates a new blend version for an existing one and redirects to the blend show page', function () {
+it('creates a new blend version from an existing one and redirects to the blend show page', function () {
     // Create blend
     [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
 
@@ -109,6 +109,29 @@ it('creates a new blend version for an existing one and redirects to the blend s
     // Assert redirect to blend show page
     $response
         ->assertRedirect(route('blends.show', $blend).'#version-'.$blend->versions()->latest('id')->first()->id);
+});
+
+it('displays the ingredients ordered by pyramid when creating a new version from an existing one', function () {
+    // Create 3 materials with different pyramid positions
+    $patchouli = makeMaterial(['name' => 'patchouli', 'pyramid' => ['base']]);
+    $lavender = makeMaterial(['pyramid' => ['heart']]);
+    $lemon = makeMaterial(['name' => 'lemon', 'pyramid' => ['top']]);
+
+    // Create blend + version with ingredients in non-pyramid order
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+    addIngredient($version, $patchouli);
+    addIngredient($version, $lemon);
+    addIngredient($version, $lavender);
+
+    // Visit create-version page with from query param
+    [, $crawler] = getPageCrawler($this->user, route('blends.versions.create', [$blend, 'from' => $version->id]));
+
+    // Assert ingredients are ordered by pyramid (lemon, lavender, patchouli)
+    $rows = $crawler->filter('[data-testid="ingredient-row"]');
+    expect($rows->count())->toBe(3);
+    expect($rows->eq(0)->filter('option[selected][value="'.$lemon->id.'"]')->count())->toBe(1);
+    expect($rows->eq(1)->filter('option[selected][value="'.$lavender->id.'"]')->count())->toBe(1);
+    expect($rows->eq(2)->filter('option[selected][value="'.$patchouli->id.'"]')->count())->toBe(1);
 });
 
 it('shows every version belonging to a blend', function () {
