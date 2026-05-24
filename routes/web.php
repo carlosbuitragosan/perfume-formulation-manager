@@ -58,8 +58,8 @@ Route::middleware('auth')
             ->name('blend-ingredients.assign-bottle');
 
         // Perfumes
-        Route::resource('blend-versions.perfumes', PerfumeController::class)
-            ->only(['create']);
+        Route::resource('versions.perfumes', PerfumeController::class)
+            ->only(['create', 'store']);
     });
 
 Route::post('/demo-login', [DemoLoginController::class, 'store'])

@@ -20,9 +20,21 @@ it('allows navigating to the perfume creation form from a blend version', functi
 
     // Assert "Create Perfume" button exists
     expect($versionDiv->selectLink('Create Perfume')->count())->toBe(1);
-    expect($versionDiv->selectLink('Create Perfume')->link()->getUri())->toBe(route('blend-versions.perfumes.create', $version));
+    expect($versionDiv->selectLink('Create Perfume')->link()->getUri())->toBe(route('versions.perfumes.create', $version));
 
     // Assert button links to perfume creation page for version
-    getAs($this->user, route('blend-versions.perfumes.create', $version))
+    getAs($this->user, route('versions.perfumes.create', $version))
         ->assertOk();
+});
+
+it('displays perfume size and concentration inputs when creating a perfume', function () {
+    // Create blend + version
+    [$blend, $version] = makeBlendWithVersion($this->user, 'Test Blend');
+
+    // Get perfume creation page for version
+    [, $crawler] = getPageCrawler($this->user, route('versions.perfumes.create', $version));
+
+    // Assert size and concentration inputs are present
+    expect($crawler->filter('input[name="size"]')->count())->toBe(1);
+    expect($crawler->filter('input[name="concentration"]')->count())->toBe(1);
 });

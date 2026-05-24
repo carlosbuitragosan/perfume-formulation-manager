@@ -12,4 +12,6 @@ class PerfumeController extends Controller
 
         return view('perfumes.create', compact('version'));
     }
+
+    public function store(Request $request, BlendVersion $version) {}
 }
