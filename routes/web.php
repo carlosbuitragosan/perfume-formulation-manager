@@ -60,6 +60,9 @@ Route::middleware('auth')
         // Perfumes
         Route::resource('versions.perfumes', PerfumeController::class)
             ->only(['create', 'store']);
+
+        Route::resource('perfumes', PerfumeController::class)
+            ->only(['show']);
     });
 
 Route::post('/demo-login', [DemoLoginController::class, 'store'])
