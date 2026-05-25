@@ -73,6 +73,17 @@
             @if (session('success') && session('version_id') === $version->id)
                <x-flash type="success">{{ session('success') }}</x-flash>
             @endif
+
+            {{-- Alert message for missing bottles or densities during perfume creation --}}
+            @if (session('alerts') && session('version_id') === $version->id)
+               <x-flash type="error">
+                  <ul>
+                     @foreach (session('alerts') as $alert)
+                        <li>{{ $alert }}</li>
+                     @endforeach
+                  </ul>
+               </x-flash>
+            @endif
          </div>
       @endforeach
    </div>

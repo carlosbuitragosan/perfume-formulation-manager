@@ -96,3 +96,28 @@ it('Supports only alcohol carrier type', function () {
     // Assert validation error for carrier type
     $response->assertSessionHasErrors(['carrier_type' => 'Only alcohol perfumes are currently supported.']);
 });
+
+it('displays an error when creating a perfume from a version with missing bottle or density data', function () {
+    // Add ingredients to version without bottle or density data
+    $lavender = makeMaterial();
+    $neroli = makeMaterial(['name' => 'neroli']);
+    $neroliBottle = makeBottle($neroli, ['density' => null]);
+    addIngredient($this->version, $lavender);
+    addIngredient($this->version, $neroli, $neroliBottle->id);
+
+    // Attempt GET request to perfume creation
+    $response = getAs($this->user, route('versions.perfumes.create', $this->version));
+
+    // Assert redirect back to blends show
+    $response->assertRedirect(route('blends.show', $this->blend).'#version-'.$this->version->id);
+
+    // Assert session error message
+    $response->assertSessionHas(
+        'alerts',
+        ['Lavender is missing a bottle.', 'Neroli is missing density.']
+    );
+
+    // Assert message is displayed on blends show page
+    [, $crawler] = getPageCrawler($this->user, route('blends.show', $this->blend));
+    expect($crawler->filter('div#version-'.$this->version->id)->text())->toContain('Lavender is missing a bottle. Neroli is missing density.');
+});

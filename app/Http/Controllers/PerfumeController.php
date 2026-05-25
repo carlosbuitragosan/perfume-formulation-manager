@@ -9,6 +9,26 @@ class PerfumeController extends Controller
 {
     public function create(Request $request, BlendVersion $version)
     {
+        $problems = [];
+
+        foreach ($version->ingredients as $ingredient) {
+            if (! $ingredient->bottle) {
+                $problems[] = "{$ingredient->material->name} is missing a bottle.";
+
+                continue; // skip density check if bottle is missing
+            }
+            if (! $ingredient->bottle->density) {
+                $problems[] = "{$ingredient->material->name} is missing density.";
+            }
+        }
+
+        if (! empty($problems)) {
+            return redirect()
+                ->route('blends.show', $version->blend)
+                ->withFragment('version-'.$version->id)
+                ->with('version_id', $version->id)
+                ->with('alerts', $problems);
+        }
 
         return view('perfumes.create', compact('version'));
     }
