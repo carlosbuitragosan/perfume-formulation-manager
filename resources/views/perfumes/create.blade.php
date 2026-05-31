@@ -1,6 +1,7 @@
 <x-app-layout>
    <x-slot name="header">
       <h2 class="font-semibold text-xl">Create Perfume</h2>
+      <p>{{ $version->blend->name }} - Version {{ $version->version }}</p>
    </x-slot>
 
    <div class="p-4">

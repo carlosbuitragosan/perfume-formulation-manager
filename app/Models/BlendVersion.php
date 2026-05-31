@@ -29,10 +29,10 @@ class BlendVersion extends Model
         return $this->hasMany(Perfume::class);
     }
 
-    public function ingredientsOrdered()
+    public function ingredientsOrdered(array $with = [])
     {
         return $this->ingredients()
-            ->with('material')
+            ->with($with)
             ->get()
             ->sortBy(fn ($ingredient) => $ingredient->pyramidSortValue())
             ->values(); // reindex after sorting
@@ -45,14 +45,11 @@ class BlendVersion extends Model
 
         // total of drops of PURE material (e.g. x3, 10 drops @25 each =  7.5)
         $pureTotal = $ingredients->sum(function ($ingredient) {
-            return $ingredient->drops * ($ingredient->dilution / 100);
+            return $ingredient->pureAmount();
         });
 
         return $ingredients->map(function ($ingredient) use ($pureTotal) {
-            // pure amount of material
-            $pure = $ingredient->drops * ($ingredient->dilution / 100); // 2.5
-            // percentage of pure material in the blend
-            $purePercentage = $pureTotal > 0 ? ($pure / $pureTotal) * 100 : 0; // 33.33%
+            $purePercentage = $ingredient->purePercentage($pureTotal);
 
             // Returns a collection of arrays
             return [

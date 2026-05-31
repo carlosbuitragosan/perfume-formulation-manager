@@ -18,6 +18,6 @@ class Perfume extends Model
 
     public function version()
     {
-        return $this->belongsTo(BlendVersion::class);
+        return $this->belongsTo(BlendVersion::class, 'blend_version_id');
     }
 }

@@ -91,4 +91,17 @@ class BlendIngredient extends Model
             default => 'heart',
         };
     }
+
+    public function pureAmount()
+    {
+        return $this->drops * ($this->dilution / 100);
+    }
+
+    public function purePercentage($pureTotal)
+    {
+        // percentage of pure material in the blend
+        return $pureTotal > 0
+         ? ($this->pureAmount() / $pureTotal) * 100
+         : 0;
+    }
 }
