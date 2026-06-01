@@ -148,9 +148,15 @@ it('displays the perfume details on the perfume show page', function () {
 
     // Assert perfume show page displays perfume details
     [$response, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
+    $perfumeHeader = $crawler->filter('div#header');
     $lavenderContainer = $crawler->filter('tr[data-material-id="'.$lavender->id.'"]');
     $roseContainer = $crawler->filter('tr[data-material-id="'.$rose->id.'"]');
     $neroliContainer = $crawler->filter('tr[data-material-id="'.$neroli->id.'"]');
+
+    // Assert header displays perfume name, size and concentration
+    expect($perfumeHeader->text())->toContain('Test Perfume');
+    expect($perfumeHeader->text())->toContain('50 ml');
+    expect($perfumeHeader->text())->toContain('20%');
 
     // Lavender
     expect($lavenderContainer->filter('td[data-col="material"]')->text())->toBe('Lavender');

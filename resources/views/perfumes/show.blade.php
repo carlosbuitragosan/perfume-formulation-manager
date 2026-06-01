@@ -1,7 +1,10 @@
 <x-app-layout>
    <x-slot name="header">
-      <div class="flex items-center justify-between">
+      <div id="header">
          <h2 class="font-semibold text-xl mr-2">{{ $perfume->name }}</h2>
+         <span class="text-sm text-gray-500">
+            {{ $perfume->size }} ml - {{ $perfume->concentration }}% Concentration
+         </span>
       </div>
    </x-slot>
 
