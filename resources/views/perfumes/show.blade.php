@@ -26,7 +26,10 @@
                   @foreach ($perfumeIngredients as $perfumeIngredient)
                      <tr data-material-id="{{ $perfumeIngredient['material_id'] ?? 'Alcohol' }}">
                         <td data-col="material" class="py-2">
-                           {{ $perfumeIngredient['material'] }}
+                           <x-perfume-ingredient-badge
+                              :material="$perfumeIngredient['material']"
+                              :variant="$perfumeIngredient['variant']"
+                           />
                         </td>
                         <td data-col="percentage" class="py-2">
                            {{ $perfumeIngredient['percentage'] }}%

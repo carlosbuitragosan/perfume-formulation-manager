@@ -1,18 +1,12 @@
 @php
+   use App\Enums\PyramidVariant;
+
    $base = 'block w-full md:inline-block md:w-auto md:min-w-[200px] text-left truncate px-2 py-1 rounded text-sm font-medium transition hover:opacity-80';
 
    $variant = $variant ?? 'green';
 
-   $colors = [
-      'top' => 'bg-purple-600 text-white',
-      'heart' => 'bg-green-700 text-white',
-      'base' => 'bg-red-700 text-white',
-      'top-heart' => 'bg-cyan-500 text-white',
-      'heart-base' => 'bg-orange-500 text-white',
-      'all' => 'bg-[#D4AF37] text-black',
-   ];
+   $colorClass = PyramidVariant::from($variant)->colorClass();
 
-   $colorClass = $colors[$variant] ?? $colors['green'];
    $hasBottle = ! empty($blendIngredient['bottle_id']);
 @endphp
 

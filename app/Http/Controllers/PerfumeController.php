@@ -88,6 +88,7 @@ class PerfumeController extends Controller
             return [
                 'material' => $ingredient->material->name,
                 'material_id' => $ingredient->material->id,
+                'variant' => $ingredient->variant(),
                 'percentage' => rtrim(rtrim(number_format($ingredientPercentage, 2, '.', ''), '0'), '.'),
                 'grams' => rtrim(rtrim(number_format($ingredientGrams, 3, '.', ''), '0'), '.'),
             ];
@@ -103,6 +104,8 @@ class PerfumeController extends Controller
         // Add alcohol row
         $perfumeIngredients->push([
             'material' => 'Alcohol',
+            'material_id' => null,
+            'variant' => null,
             'percentage' => rtrim(rtrim(number_format((100 - $perfume->concentration), 2, '.', ''), '0'), '.'),
             'grams' => rtrim(rtrim(number_format($alcoholGrams, 3, '.', ''), '0'), '.'),
         ]);
