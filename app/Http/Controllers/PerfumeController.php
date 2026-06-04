@@ -8,11 +8,11 @@ use Illuminate\Http\Request;
 
 class PerfumeController extends Controller
 {
-    public function create(Request $request, BlendVersion $version)
+    public function create(Request $request, BlendVersion $blendVersion)
     {
         $problems = [];
 
-        foreach ($version->ingredients as $ingredient) {
+        foreach ($blendVersion->ingredients as $ingredient) {
             if (! $ingredient->bottle) {
                 $problems[] = "{$ingredient->material->name} is missing a bottle.";
 
@@ -25,91 +25,102 @@ class PerfumeController extends Controller
 
         if (! empty($problems)) {
             return redirect()
-                ->route('blends.show', $version->blend)
-                ->withFragment('version-'.$version->id)
-                ->with('version_id', $version->id)
+                ->route('blends.show', $blendVersion->blend)
+                ->withFragment('version-'.$blendVersion->id)
+                ->with('version_id', $blendVersion->id)
                 ->with('alerts', $problems);
         }
 
-        return view('perfumes.create', compact('version'));
+        return view('perfumes.create', compact('blendVersion'));
     }
 
-    public function store(Request $request, BlendVersion $version)
+    public function store(Request $request, BlendVersion $blendVersion)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'size' => 'required|numeric|min:0.1',
             'concentration' => 'required|numeric|min:0.1|max:100',
-            'carrier_type' => 'nullable|string|in:alcohol,oil,solid',
         ]);
 
-        if ($validated['carrier_type'] !== 'alcohol') {
-            return back()
-                ->withErrors(['carrier_type' => 'Only alcohol perfumes are currently supported.'])
-                ->withInput();
-        }
+        $perfume = $blendVersion->perfumes()->create([
+            'name' => $validated['name'],
+        ]);
 
-        $perfume = $version->perfumes()->create($validated);
+        $perfume->versions()->create([
+            'size' => $validated['size'],
+            'concentration' => $validated['concentration'],
+        ]);
 
         return redirect()->route('perfumes.show', $perfume);
     }
 
     public function show(Perfume $perfume)
     {
-
-        $versionIngredients = $perfume
-            ->version
+        $blendVersionIngredients = $perfume
+            ->blendVersion
             ->ingredientsOrdered(['material', 'bottle']);
 
         // Pure total  of essential oils in the original version
-        $versionPureTotal = $versionIngredients->sum(function ($ingredient) {
+        $blendVersionPureTotal = $blendVersionIngredients->sum(function ($ingredient) {
             return $ingredient->pureAmount();
         });
 
-        // Pure total of essential oils (pure drops)
-        $perfumePureTotal = ($perfume->concentration / 100) * $perfume->size;
+        // Create collection to hold data for each perfume version
+        $perfumeVersionBreakdowns = collect();
 
-        $perfumeIngredients = $versionIngredients->map(function ($ingredient) use (
-            $versionPureTotal,
-            $perfumePureTotal,
-            $perfume) {
-            // Percentage of this ingredient in the formula
-            $purePercentage = $ingredient->purePercentage($versionPureTotal);
+        foreach ($perfume->versions as $perfumeVersion) {
 
-            // Amount of this ingredient in ml
-            $ingredientMl = ($purePercentage / 100) * $perfumePureTotal;
+            // Pure total of essential oils (pure drops)
+            $perfumePureTotal = ($perfumeVersion->concentration / 100) * $perfumeVersion->size;
 
-            // Convert ml to grams using bottle density
-            $ingredientGrams = $ingredientMl * $ingredient->bottle->density;
+            $perfumeIngredients = $blendVersionIngredients->map(function ($ingredient) use (
+                $blendVersionPureTotal,
+                $perfumePureTotal,
+                $perfumeVersion
+            ) {
+                // Percentage of this ingredient in the formula
+                $purePercentage = $ingredient->purePercentage($blendVersionPureTotal);
 
-            // Percentage of this ingredient in the final perfume
-            $ingredientPercentage = ($ingredientMl / $perfume->size) * 100;
+                // Amount of this ingredient in ml
+                $ingredientMl = ($purePercentage / 100) * $perfumePureTotal;
 
-            return [
-                'material' => $ingredient->material->name,
-                'material_id' => $ingredient->material->id,
-                'variant' => $ingredient->variant(),
-                'percentage' => rtrim(rtrim(number_format($ingredientPercentage, 2, '.', ''), '0'), '.'),
-                'grams' => rtrim(rtrim(number_format($ingredientGrams, 3, '.', ''), '0'), '.'),
-            ];
-        });
+                // Convert ml to grams using bottle density
+                $ingredientGrams = $ingredientMl * $ingredient->bottle->density;
 
-        // Alcohol calculation
-        $alcoholMl = $perfume->size - $perfumePureTotal;
+                // Percentage of this ingredient in the final perfume
+                $ingredientPercentage = ($ingredientMl / $perfumeVersion->size) * 100;
 
-        // Approximate perfumers alcohol density
-        $alcoholDensity = 0.85;
-        $alcoholGrams = $alcoholMl * $alcoholDensity;
+                return [
+                    'material' => $ingredient->material->name,
+                    'material_id' => $ingredient->material->id,
+                    'variant' => $ingredient->variant(),
+                    'percentage' => rtrim(rtrim(number_format($ingredientPercentage, 2, '.', ''), '0'), '.'),
+                    'grams' => rtrim(rtrim(number_format($ingredientGrams, 3, '.', ''), '0'), '.'),
+                ];
+            });
 
-        // Add alcohol row
-        $perfumeIngredients->push([
-            'material' => 'Alcohol',
-            'material_id' => null,
-            'variant' => null,
-            'percentage' => rtrim(rtrim(number_format((100 - $perfume->concentration), 2, '.', ''), '0'), '.'),
-            'grams' => rtrim(rtrim(number_format($alcoholGrams, 3, '.', ''), '0'), '.'),
-        ]);
+            // Alcohol calculation
+            $alcoholMl = $perfumeVersion->size - $perfumePureTotal;
 
-        return view('perfumes.show', compact('perfume', 'perfumeIngredients'));
+            // Approximate perfumers alcohol density
+            $alcoholDensity = 0.85;
+            $alcoholGrams = $alcoholMl * $alcoholDensity;
+
+            // Add alcohol row
+            $perfumeIngredients->push([
+                'material' => 'Alcohol',
+                'material_id' => null,
+                'variant' => null,
+                'percentage' => rtrim(rtrim(number_format((100 - $perfumeVersion->concentration), 2, '.', ''), '0'), '.'),
+                'grams' => rtrim(rtrim(number_format($alcoholGrams, 3, '.', ''), '0'), '.'),
+            ]);
+
+            $perfumeVersionBreakdowns->push([
+                'version' => $perfumeVersion,
+                'ingredients' => $perfumeIngredients,
+            ]);
+        }
+
+        return view('perfumes.show', compact('perfume', 'perfumeVersionBreakdowns'));
     }
 }

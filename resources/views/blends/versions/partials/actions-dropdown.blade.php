@@ -9,23 +9,27 @@
       </button>
    </x-slot>
    <x-slot name="content">
-      <x-dropdown-link :href="route('versions.perfumes.create', $version)">
+      <x-dropdown-link :href="route('perfumes.create', $blendVersion)">
          Create Perfume
       </x-dropdown-link>
-      <x-dropdown-link :href="route('blends.versions.create', [$blend, 'from' => $version->id])">
+      <x-dropdown-link
+         :href="route('blends.versions.create', [$blend, 'from' => $blendVersion->id])"
+      >
          New Version
       </x-dropdown-link>
 
-      <x-dropdown-link :href="route('blends.versions.edit', [$blend, $version])">
+      <x-dropdown-link :href="route('blends.versions.edit', [$blend, $blendVersion])">
          Edit Version
       </x-dropdown-link>
 
       @if ($blend->versions->count() > 1)
          <form
             method="POST"
-            action="{{ route('blends.versions.destroy', [$blend, $version]) }}"
+            action="{{ route('blends.versions.destroy', [$blend, $blendVersion]) }}"
             onsubmit="
-               return confirm('Delete {{ $blend->name }}\'s Version {{ $version->version }}?');
+               return confirm(
+                  'Delete {{ $blend->name }}\'s Version {{ $blendVersion->version }}?',
+               );
             "
          >
             @csrf

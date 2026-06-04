@@ -38,11 +38,11 @@ class BlendController extends Controller
             $request->user()->id,
         );
 
-        $version = $blend->versions()->latest()->first();
+        $blendVersion = $blend->versions()->latest()->first();
 
         return redirect()->route('blends.show', $blend)
-            ->with('success', "Version {$version->version} added")
-            ->with('version_id', $version->id);
+            ->with('success', "Version {$blendVersion->version} added")
+            ->with('version_id', $blendVersion->id);
     }
 
     public function show(Blend $blend)
@@ -50,11 +50,11 @@ class BlendController extends Controller
         $this->authorize('view', $blend);
 
         // Return version or null
-        $versions = $blend->versions()
+        $blendVersions = $blend->versions()
             ->with(['ingredients.material'])
             ->get();
 
-        return view('blends.show', compact('blend', 'versions'));
+        return view('blends.show', compact('blend', 'blendVersions'));
     }
 
     public function destroy(Blend $blend)

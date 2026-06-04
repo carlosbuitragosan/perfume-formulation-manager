@@ -7,7 +7,7 @@
    <div class="p-4">
       <form
          method="POST"
-         action="{{ route('blends.versions.update', [$blend, $version]) }}"
+         action="{{ route('blends.versions.update', [$blend, $blendVersion]) }}"
          class="space-y-3"
       >
          @csrf
@@ -22,7 +22,7 @@
 
          {{-- INGREDIENTS --}}
          <div class="space-y-6" data-testid="ingredients-container">
-            @foreach ($version->ingredients as $index => $ingredient)
+            @foreach ($blendVersion->ingredients as $index => $ingredient)
                <div
                   class="flex flex-col gap-3"
                   data-testid="ingredient-row"

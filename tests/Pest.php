@@ -126,17 +126,17 @@ function makeBlendWithVersion(User $user, string $name = 'Test Blend')
         'name' => $name,
     ]);
 
-    $version = $blend->versions()->create([
+    $blendVersion = $blend->versions()->create([
         'version' => $blend->nextVersionNumber(),
     ]);
 
-    return [$blend, $version];
+    return [$blend, $blendVersion];
 }
 
 // adds a new ingredient to a specific version (material, drops, dilution, bottle_id, etc) in DB
-function addIngredient($version, $material, $bottleId = null, $drops = 4, $dilution = 25)
+function addIngredient($blendVersion, $material, $bottleId = null, $drops = 4, $dilution = 25)
 {
-    return $version->ingredients()->create([
+    return $blendVersion->ingredients()->create([
         'bottle_id' => $bottleId,
         'material_id' => $material->id,
         'drops' => $drops,

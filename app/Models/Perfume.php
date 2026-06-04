@@ -11,13 +11,15 @@ class Perfume extends Model
 
     protected $fillable = [
         'name',
-        'size',
-        'concentration',
-        'carrier_type',
     ];
 
-    public function version()
+    public function blendVersion()
     {
-        return $this->belongsTo(BlendVersion::class, 'blend_version_id');
+        return $this->belongsTo(BlendVersion::class);
+    }
+
+    public function versions()
+    {
+        return $this->hasMany(PerfumeVersion::class);
     }
 }

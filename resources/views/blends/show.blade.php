@@ -15,19 +15,19 @@
    @endif
 
    <div class="p-4 space-y-4">
-      @foreach ($versions as $version)
+      @foreach ($blendVersions as $blendVersion)
          @php
-            $blendIngredients = $version->formattedIngredients();
+            $blendIngredients = $blendVersion->formattedIngredients();
          @endphp
 
          <div
-            id="version-{{ $version->id }}"
+            id="version-{{ $blendVersion->id }}"
             data-testId="blend-version"
-            data-version="{{ $version->version }}"
+            data-version="{{ $blendVersion->version }}"
             tabindex="0"
             class="relative card px-3 py-3"
          >
-            <div class="font-semibold mb-3 pt-2">Version {{ $version->version }}</div>
+            <div class="font-semibold mb-3 pt-2">Version {{ $blendVersion->version }}</div>
 
             <div class="overflow-x-auto">
                <table class="w-full text-sm border-separate border-spacing-x-3">
@@ -66,16 +66,16 @@
             {{-- Dropdown --}}
             <div class="absolute top-2 right-2">
                @include(
-               'blends.versions.partials.actions-dropdown', ['version' => $version]               )
+               'blends.versions.partials.actions-dropdown', ['version' => $blendVersion]               )
             </div>
 
             {{-- Success message for version update --}}
-            @if (session('success') && session('version_id') === $version->id)
+            @if (session('success') && session('version_id') === $blendVersion->id)
                <x-flash type="success">{{ session('success') }}</x-flash>
             @endif
 
             {{-- Alert message for missing bottles or densities during perfume creation --}}
-            @if (session('alerts') && session('version_id') === $version->id)
+            @if (session('alerts') && session('version_id') === $blendVersion->id)
                <x-flash type="error">
                   <ul>
                      @foreach (session('alerts') as $alert)

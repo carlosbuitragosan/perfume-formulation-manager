@@ -8,9 +8,9 @@ return new class extends Migration
     public function up(): void
     {
         BlendVersion::query()
-            ->each(function ($version) {
-                $version->update([
-                    'version' => (int) $version->version,
+            ->each(function ($blendVersion) {
+                $blendVersion->update([
+                    'version' => (int) $blendVersion->version,
                 ]);
             });
     }

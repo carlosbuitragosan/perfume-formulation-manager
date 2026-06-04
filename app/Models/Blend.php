@@ -32,7 +32,7 @@ class Blend extends Model
             'name' => trim($data['name']),
         ]);
 
-        $version = $blend->versions()->create([
+        $blendVersion = $blend->versions()->create([
             'version' => $blend->nextVersionNumber(),
         ]);
 
@@ -52,7 +52,7 @@ class Blend extends Model
                 $bottleId = $availableBottlesByMaterial->first()->id;
             }
 
-            $version->ingredients()->create([
+            $blendVersion->ingredients()->create([
                 'material_id' => $row['material_id'],
                 'bottle_id' => $bottleId,
                 'drops' => $row['drops'],
@@ -65,7 +65,7 @@ class Blend extends Model
 
     public function createVersionWithIngredients(array $data)
     {
-        $version = $this->versions()->create([
+        $blendVersion = $this->versions()->create([
             'version' => $this->nextVersionNumber(),
         ]);
 
@@ -85,7 +85,7 @@ class Blend extends Model
                 $bottleId = $availableBottlesByMaterial->first()->id;
             }
 
-            $version->ingredients()->create([
+            $blendVersion->ingredients()->create([
                 'material_id' => $row['material_id'],
                 'bottle_id' => $bottleId,
                 'drops' => $row['drops'],
@@ -93,7 +93,7 @@ class Blend extends Model
             ]);
         }
 
-        return $version;
+        return $blendVersion;
     }
 
     // Normalize blend name (e.g. "dark floral" => "Dark Floral")
@@ -112,10 +112,10 @@ class Blend extends Model
         return $latestVersionNumber + 1;
     }
 
-    public function versionToClone(int $versionId): BlendVersion
+    public function versionToClone(int $blendVersionId): BlendVersion
     {
         return $this->versions()
             ->with('ingredients')
-            ->findOrFail($versionId);
+            ->findOrFail($blendVersionId);
     }
 }

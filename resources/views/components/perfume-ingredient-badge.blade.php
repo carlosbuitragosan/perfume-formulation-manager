@@ -1,7 +1,7 @@
 @php
    use App\Enums\PyramidVariant;
 
-   $base = 'inline-block min-w-[200px] px-2 py-1 rounded text-sm font-medium';
+   $base = 'block w-full md:inline-block md:w-auto md:min-w-[200px] text-left truncate px-2 py-1 rounded text-sm font-medium transition hover:opacity-80';
 
    $colorClass = PyramidVariant::tryFrom($variant)?->colorClass() ?? 'bg-gray-500 text-white';
 @endphp

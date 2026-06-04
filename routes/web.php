@@ -50,6 +50,7 @@ Route::middleware('auth')
 
         // Blend versions
         Route::resource('blends.versions', BlendVersionController::class)
+            ->parameters(['versions' => 'blendVersion'])
             ->only(['create', 'store', 'edit', 'update', 'destroy']);
 
         // Blend ingredients
@@ -58,8 +59,10 @@ Route::middleware('auth')
             ->name('blend-ingredients.assign-bottle');
 
         // Perfumes
-        Route::resource('versions.perfumes', PerfumeController::class)
-            ->only(['create', 'store']);
+        Route::get('perfumes/create/{blendVersion}', [PerfumeController::class, 'create'])
+            ->name('perfumes.create');
+        Route::post('perfumes/{blendVersion}', [PerfumeController::class, 'store'])
+            ->name('perfumes.store');
 
         Route::resource('perfumes', PerfumeController::class)
             ->only(['show']);

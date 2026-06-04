@@ -31,46 +31,46 @@ class BlendVersionController extends Controller
         $data = $request->validated();
 
         // Create version
-        $version = $blend->createVersionWithIngredients($data);
+        $blendVersion = $blend->createVersionWithIngredients($data);
 
         return redirect()->route('blends.show', $blend)
-            ->withFragment('version-'.$version->id)
-            ->with('success', "Version {$version->version} added")
-            ->with('version_id', $version->id);
+            ->withFragment('version-'.$blendVersion->id)
+            ->with('success', "Version {$blendVersion->version} added")
+            ->with('version_id', $blendVersion->id);
     }
 
     // Edit form
-    public function edit(Blend $blend, BlendVersion $version)
+    public function edit(Blend $blend, BlendVersion $blendVersion)
     {
-        $this->authorize('update', $version);
+        $this->authorize('update', $blendVersion);
 
         // Get a collection of all materials for user
         $materials = Material::forUserOrdered(auth()->id())->get();
 
-        return view('blends.versions.edit', compact('blend', 'version', 'materials'));
+        return view('blends.versions.edit', compact('blend', 'blendVersion', 'materials'));
     }
 
-    public function update(UpdateBlendVersionRequest $request, Blend $blend, BlendVersion $version)
+    public function update(UpdateBlendVersionRequest $request, Blend $blend, BlendVersion $blendVersion)
     {
         // Autorize user
-        $this->authorize('update', $version);
+        $this->authorize('update', $blendVersion);
 
         // validate
         $data = $request->validated();
 
         // Update version
-        $version->rebuildIngredients($request->user(), $data['materials']);
+        $blendVersion->rebuildIngredients($request->user(), $data['materials']);
 
         return redirect()
             ->route('blends.show', $blend)
-            ->withFragment('version-'.$version->id)
-            ->with('success', "Version {$version->version} updated")
-            ->with('version_id', $version->id);
+            ->withFragment('version-'.$blendVersion->id)
+            ->with('success', "Version {$blendVersion->version} updated")
+            ->with('version_id', $blendVersion->id);
     }
 
-    public function destroy(Blend $blend, BlendVersion $version)
+    public function destroy(Blend $blend, BlendVersion $blendVersion)
     {
-        $this->authorize('delete', $version);
+        $this->authorize('delete', $blendVersion);
 
         if ($blend->versions()->count() <= 1) {
             return redirect()
@@ -78,10 +78,10 @@ class BlendVersionController extends Controller
                 ->with('error', 'Cannot delete the only version of a blend');
         }
 
-        $version->delete();
+        $blendVersion->delete();
 
         return redirect()
             ->route('blends.show', $blend)
-            ->with('success', "Version {$version->version} deleted");
+            ->with('success', "Version {$blendVersion->version} deleted");
     }
 }
