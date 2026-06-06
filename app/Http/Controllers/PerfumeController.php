@@ -8,6 +8,13 @@ use Illuminate\Http\Request;
 
 class PerfumeController extends Controller
 {
+    public function index()
+    {
+        $perfumes = Perfume::all();
+
+        return view('perfumes.index', compact('perfumes'));
+    }
+
     public function create(Request $request, BlendVersion $blendVersion)
     {
         $problems = [];
@@ -73,7 +80,7 @@ class PerfumeController extends Controller
             // Pure total of essential oils (pure drops)
             $perfumePureTotal = ($perfumeVersion->concentration / 100) * $perfumeVersion->size;
 
-            $perfumeIngredients = $blendVersionIngredients->map(function ($ingredient) use (
+            $perfumeVersionIngredients = $blendVersionIngredients->map(function ($ingredient) use (
                 $blendVersionPureTotal,
                 $perfumePureTotal,
                 $perfumeVersion
@@ -107,7 +114,7 @@ class PerfumeController extends Controller
             $alcoholGrams = $alcoholMl * $alcoholDensity;
 
             // Add alcohol row
-            $perfumeIngredients->push([
+            $perfumeVersionIngredients->push([
                 'material' => 'Alcohol',
                 'material_id' => null,
                 'variant' => null,
@@ -117,7 +124,7 @@ class PerfumeController extends Controller
 
             $perfumeVersionBreakdowns->push([
                 'version' => $perfumeVersion,
-                'ingredients' => $perfumeIngredients,
+                'ingredients' => $perfumeVersionIngredients,
             ]);
         }
 

@@ -183,15 +183,17 @@ test('perfume displays ingredients according to pyramid values', function () {
     // Create perfume from version
     $perfume = $this->blendVersion->perfumes()->create([
         'name' => 'Test Perfume',
+    ]);
+
+    $perfumeVersion = $perfume->versions()->create([
         'size' => 50,
         'concentration' => 20,
-        'carrier_type' => 'alcohol',
     ]);
 
     // Assert perfume show page displays pyramid values for each ingredient
     [, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
 
-    $ingredientsTable = $crawler->filter('div#perfume-'.$perfume->id.' tbody');
+    $ingredientsTable = $crawler->filter('div#version-'.$perfume->id.' tbody');
 
     // collection of table rows in the exact order they are displayed on the page
     $rows = $ingredientsTable->filter('tr');
@@ -208,5 +210,15 @@ test('perfume displays ingredients according to pyramid values', function () {
 
     foreach ($expectedOrder as $index => $name) {
         expect($rows->eq($index)->text())->toContain($name);
+    }
+});
+
+it('shows a link to the perfume index in both mobile and desktop navigation', function () {
+    [, $crawler] = getPageCrawler($this->user, route('materials.index'));
+
+    expect($crawler->selectLink('Perfumes')->count())->toBe(2);
+
+    foreach ($crawler->selectLink('Perfumes') as $link) {
+        expect($link->getAttribute('href'))->toBe(route('perfumes.index'));
     }
 });
