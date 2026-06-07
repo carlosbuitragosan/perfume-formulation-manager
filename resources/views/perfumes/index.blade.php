@@ -10,11 +10,17 @@
          <div class="space-y-3">
             @foreach ($perfumes as $perfume)
                <div
-                  data-testid="blend-card"
-                  data-blend-id="{{ $perfume->id }}"
-                  class="card card-hover card-focus block px-4 py-3 rounded-md text-sm font-semibold"
+                  data-testid="perfume-card"
+                  data-perfume-id="{{ $perfume->id }}"
+                  x-data="{ editing: {{ $errors->has('name') ? 'true' : 'false' }} }"
                >
-                  {{ $perfume->name }}
+                  <div
+                     data-testid="perfume-link"
+                     @click="if (!editing) window.location='{{ route('perfumes.show', $perfume) }}'"
+                     class="card card-hover card-focus block px-4 py-3 rounded-md text-sm font-semibold"
+                  >
+                     {{ $perfume->name }}
+                  </div>
                </div>
             @endforeach
          </div>

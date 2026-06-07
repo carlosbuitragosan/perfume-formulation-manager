@@ -234,3 +234,11 @@ it('displays a list of perfumes on the perfume index page', function () {
         ->assertSee('Perfume 1')
         ->assertSee('Perfume 2');
 });
+
+test('perfumes on index page contain link to the perfume show page', function () {
+    $perfume = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
+
+    $response = getAs($this->user, route('perfumes.index'));
+
+    $response->assertSee(route('perfumes.show', $perfume), false);
+});
