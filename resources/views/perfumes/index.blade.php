@@ -5,5 +5,19 @@
       </div>
    </x-slot>
 
-   <div class="p-4 space-y-4">hihi</div>
+   <div class="p-4 space-y-4">
+      @if ($perfumes->isNotEmpty())
+         <div class="space-y-3">
+            @foreach ($perfumes as $perfume)
+               <div
+                  data-testid="blend-card"
+                  data-blend-id="{{ $perfume->id }}"
+                  class="card card-hover card-focus block px-4 py-3 rounded-md text-sm font-semibold"
+               >
+                  {{ $perfume->name }}
+               </div>
+            @endforeach
+         </div>
+      @endif
+   </div>
 </x-app-layout>

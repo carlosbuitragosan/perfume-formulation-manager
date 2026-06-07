@@ -121,8 +121,8 @@ it('displays the perfume details on the perfume show page', function () {
     $perfumeVersion = $perfume->versions()->create([
         'size' => 50,
         'concentration' => 20,
-    ]);
 
+    ]);
     // Assert perfume show page displays perfume details
     [$response, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
     $perfumeHeader = $crawler->filter('div#header');
@@ -221,4 +221,16 @@ it('shows a link to the perfume index in both mobile and desktop navigation', fu
     foreach ($crawler->selectLink('Perfumes') as $link) {
         expect($link->getAttribute('href'))->toBe(route('perfumes.index'));
     }
+});
+
+it('displays a list of perfumes on the perfume index page', function () {
+    // Create perfumes
+    $perfume1 = $this->blendVersion->perfumes()->create(['name' => 'Perfume 1']);
+    $perfume2 = $this->blendVersion->perfumes()->create(['name' => 'Perfume 2']);
+
+    // Assert perfume index page displays created perfumes
+    getAs($this->user, route('perfumes.index'))
+        ->assertOk()
+        ->assertSee('Perfume 1')
+        ->assertSee('Perfume 2');
 });
