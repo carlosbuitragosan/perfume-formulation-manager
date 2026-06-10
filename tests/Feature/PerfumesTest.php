@@ -242,3 +242,45 @@ test('perfumes on index page contain link to the perfume show page', function ()
 
     $response->assertSee(route('perfumes.show', $perfume), false);
 });
+
+test('user can update a perfume name', function () {
+    // Create perfume
+    $perfume = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
+    // Send request to update perfume name
+    $response = patchAs($this->user, route('perfumes.update', $perfume), [
+        'name' => 'Updated Perfume Name',
+    ]);
+    // Assert redirect to index page
+    $response->assertRedirect(route('perfumes.index'));
+
+    // Assert new name is shown on index page
+    [, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
+    expect($crawler->filter('header')->text())->toContain('Updated Perfume Name');
+});
+
+test('empty perfume name shows error when updating', function () {
+    // Create perfume
+    $perfume1 = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
+    $perfume2 = $this->blendVersion->perfumes()->create(['name' => 'Another Perfume']);
+
+    // Send request to update perfume name to empty string
+    $response = patchAs($this->user, route('perfumes.update', $perfume1), [
+        'name' => '',
+    ]);
+
+    // Assert validation error for name field
+    $response->assertSessionHasErrors('name');
+    $response->assertSessionHas('perfume_id', $perfume1->id);
+
+    // Assert error message is displayed on perfume index page for the correct perfume
+    $response = $this
+        ->from(route('perfumes.index'))
+        ->followingRedirects()
+        ->patch(route('perfumes.update', $perfume1), [
+            'name' => '',
+        ]);
+
+    $crawler = crawl($response);
+    expect($crawler->filter('div[data-perfume-id="'.$perfume1->id.'"]')->text())->toContain('Enter a perfume name');
+    expect($crawler->filter('div[data-perfume-id="'.$perfume2->id.'"]')->text())->not->toContain('Enter a perfume name');
+});

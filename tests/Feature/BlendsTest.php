@@ -371,14 +371,13 @@ describe('Blend Editing', function () {
             'name' => 'New Blend Name',
         ]);
 
-        // Assert Redirected to blend show page
+        // Assert Redirected to blend index page
         $response->assertRedirect(route('blends.index'));
 
         // Assert new name is shown
         [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
         expect($crawler->filter('header')->text())->toContain('New Blend Name');
     });
-
 });
 
 // ==========================================================

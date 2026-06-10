@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Perfume\UpdatePerfumeRequest;
 use App\Models\BlendVersion;
 use App\Models\Perfume;
 use Illuminate\Http\Request;
@@ -129,5 +130,21 @@ class PerfumeController extends Controller
         }
 
         return view('perfumes.show', compact('perfume', 'perfumeVersionBreakdowns'));
+    }
+
+    public function update(UpdatePerfumeRequest $request, Perfume $perfume)
+    {
+        $validated = $request->validated();
+
+        $perfume->update([
+            'name' => $validated['name'],
+        ]);
+
+        // update timestamp
+        $perfume->touch();
+
+        return redirect()
+            ->route('perfumes.index')
+            ->with('perfume_id', $perfume->id);
     }
 }

@@ -65,7 +65,7 @@ Route::middleware('auth')
             ->name('perfumes.store');
 
         Route::resource('perfumes', PerfumeController::class)
-            ->only(['show', 'index']);
+            ->only(['show', 'index', 'update']);
     });
 
 Route::post('/demo-login', [DemoLoginController::class, 'store'])

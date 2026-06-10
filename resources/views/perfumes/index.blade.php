@@ -12,14 +12,26 @@
                <div
                   data-testid="perfume-card"
                   data-perfume-id="{{ $perfume->id }}"
-                  x-data="{ editing: {{ $errors->has('name') ? 'true' : 'false' }} }"
+                  x-data="{
+                     editing:
+                        {{ $errors->has('name') && session('perfume_id') === $perfume->id ? 'true' : 'false' }},
+                  }"
+                  class="relative"
                >
                   <div
                      data-testid="perfume-link"
                      @click="if (!editing) window.location='{{ route('perfumes.show', $perfume) }}'"
                      class="card card-hover card-focus block px-4 py-3 rounded-md text-sm font-semibold"
                   >
-                     {{ $perfume->name }}
+                     <x-editable-perfume-name :perfume="$perfume" />
+                  </div>
+                  <div class="absolute top-2 right-2">
+                     @include(
+                        'perfumes.partials.actions-dropdown',
+                        [
+                           'perfume' => $perfume,
+                        ]
+                     )
                   </div>
                </div>
             @endforeach
