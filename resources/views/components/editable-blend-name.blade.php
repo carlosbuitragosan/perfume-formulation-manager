@@ -26,11 +26,14 @@
                @blur="$el.form.submit()"
             />
          </label>
-         @error('name')
-            <div data-testid="error-name">
-               <x-flash type="error" class="">{{ $message }}</x-flash>
-            </div>
-         @enderror
+
+         @if (session('blend_id') === $blend->id)
+            @error('name')
+               <div data-testid="error-name" class="mt-2">
+                  <x-flash type="error" class="">{{ $message }}</x-flash>
+               </div>
+            @enderror
+         @endif
       </form>
    </div>
 </div>

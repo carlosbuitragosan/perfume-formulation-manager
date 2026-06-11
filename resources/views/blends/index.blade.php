@@ -21,7 +21,10 @@
                   data-testid="blend-card"
                   data-blend-id="{{ $blend->id }}"
                   class="relative"
-                  x-data="{ editing: {{ $errors->has('name') ? 'true' : 'false' }} }"
+                  x-data="{
+                     editing:
+                        {{ $errors->has('name') && session('blend_id') === $blend->id ? 'true' : 'false' }},
+                  }"
                >
                   <div
                      @click="if (!editing) window.location='{{ route('blends.show', $blend) }}'"

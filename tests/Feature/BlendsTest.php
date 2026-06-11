@@ -378,6 +378,32 @@ describe('Blend Editing', function () {
         [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
         expect($crawler->filter('header')->text())->toContain('New Blend Name');
     });
+
+    test('empty blend name shows error only on the edited blend', function () {
+        // Create 2 blends
+        [$blend1] = makeBlendWithVersion($this->user, 'Blend 1');
+        [$blend2] = makeBlendWithVersion($this->user, 'Blend 2');
+
+        // Submit empty name for blend 1
+        $response = patchAs($this->user, route('blends.update', $blend1), [
+            'name' => '',
+        ]);
+        // Assert validation error
+        $response->assertSessionHasErrors('name');
+        $response->assertSessionHas('blend_id', $blend1->id);
+
+        // Assert error is show only for blend 1
+        $response = $this
+            ->from(route('blends.index'))
+            ->followingRedirects()
+            ->patch(route('blends.update', $blend1), [
+                'name' => '',
+            ]);
+
+        $crawler = crawl($response);
+        expect($crawler->filter('div[data-blend-id="'.$blend1->id.'"]')->text())->toContain('Enter a blend name');
+        expect($crawler->filter('div[data-blend-id="'.$blend2->id.'"]')->text())->not->toContain('Enter a blend name');
+    });
 });
 
 // ==========================================================

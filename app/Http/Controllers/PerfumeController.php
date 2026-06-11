@@ -144,7 +144,6 @@ class PerfumeController extends Controller
         $perfume->touch();
 
         return redirect()
-            ->route('perfumes.index')
-            ->with('perfume_id', $perfume->id);
+            ->route('perfumes.index');
     }
 }

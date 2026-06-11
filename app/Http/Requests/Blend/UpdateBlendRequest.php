@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Blend;
 
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateBlendRequest extends FormRequest
 {
@@ -36,5 +38,19 @@ class UpdateBlendRequest extends FormRequest
         return [
             'name.required' => 'Enter a blend name',
         ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+        $blend = $this->route('blend');
+
+        // Override default redirect
+        throw new HttpResponseException(
+            redirect()
+                ->back() // redirect to same page user was on
+                ->withErrors($validator) // keep normal validation errors
+                ->withInput() // keep old input
+                ->with('blend_id', $blend->id) // pass on the ID
+        );
     }
 }
