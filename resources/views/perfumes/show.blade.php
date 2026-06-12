@@ -55,6 +55,11 @@
                   </tbody>
                </table>
             </div>
+
+            {{-- Show success message for created version --}}
+            @if (session('success') && session('version_id') === $perfumeVersion->id)
+               <x-flash type="success">{{ session('success') }}</x-flash>
+            @endif
          </div>
       @endforeach
    </div>

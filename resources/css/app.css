@@ -13,13 +13,26 @@
    input[type='date'],
    textarea,
    select {
-      @apply rounded-md border border-gray-300 bg-white text-slate-900 placeholder-gray-500 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:placeholder-gray-400;
+      @apply rounded-md border 
+      border-gray-300 
+      bg-white 
+      text-slate-900 
+      placeholder-gray-500 
+      dark:bg-gray-900 
+      dark:text-gray-100 
+      dark:border-gray-700 
+      dark:placeholder-gray-400;
    }
 
    /* Focus styles – single, consistent ring */
    input:focus,
    textarea:focus {
-      @apply ring-2 ring-indigo-500 border-gray-600 ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
+      @apply ring-2 
+      ring-indigo-500 
+      border-gray-600 
+      ring-offset-2 
+      ring-offset-white 
+      dark:ring-offset-gray-900;
    }
 
    select:focus {
@@ -41,14 +54,23 @@
    }
    /* Cards/containers */
    .card {
-      @apply rounded-lg border border-gray-200 bg-white text-slate-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100;
+      @apply rounded-lg border 
+      border-gray-200 
+      bg-white 
+      text-slate-900 
+      dark:border-gray-800 
+      dark:bg-gray-900 
+      dark:text-gray-100;
    }
 
    .card-hover {
-      @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+      @apply hover:bg-gray-100 
+      dark:hover:bg-gray-800;
    }
 
    .card-focus {
-      @apply focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-950 active:ring-2 active:ring-indigo-500 active:ring-offset-2;
+      @apply focus:outline-none 
+      focus:ring-2 
+      focus:ring-indigo-500;
    }
 }

@@ -54,12 +54,16 @@ class PerfumeController extends Controller
             'name' => $validated['name'],
         ]);
 
-        $perfume->versions()->create([
+        $perfumeVersion = $perfume->versions()->create([
             'size' => $validated['size'],
             'concentration' => $validated['concentration'],
         ]);
 
-        return redirect()->route('perfumes.show', $perfume);
+        return redirect()
+            ->route('perfumes.show', $perfume)
+            ->withFragment('version-'.$perfumeVersion->id)
+            ->with('success', 'Perfume created')
+            ->with('version_id', $perfumeVersion->id);
     }
 
     public function show(Perfume $perfume)

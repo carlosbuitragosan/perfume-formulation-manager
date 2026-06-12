@@ -43,7 +43,7 @@ it('returns to the originating blend version when cancelling perfume creation', 
     expect($crawler->selectLink('CANCEL')->link()->getUri())->toBe(route('blends.show', $this->blend).'#version-'.$this->blendVersion->id);
 });
 
-it('creates a perfume from a blend version and redirects to the perfume page', function () {
+it('creates a perfume from a blend version and redirects to the perfume show page with anchor', function () {
     // Post to perfume store route with form data
     $response = postAs($this->user, route('perfumes.store', $this->blendVersion), [
         'name' => 'Test Perfume',
@@ -58,6 +58,7 @@ it('creates a perfume from a blend version and redirects to the perfume page', f
     ]);
 
     $perfume = Perfume::where('name', 'Test Perfume')->first();
+    $perfumeVersion = $perfume->versions()->first();
 
     $this->assertDatabaseHas('perfume_versions', [
         'perfume_id' => $perfume->id,
@@ -66,10 +67,37 @@ it('creates a perfume from a blend version and redirects to the perfume page', f
     ]);
 
     // Assert response redirects to perfumes show page
-    $response->assertRedirect(route('perfumes.show', $perfume));
+    $response->assertRedirect(route('perfumes.show', $perfume).'#version-'.$perfumeVersion->id);
 
     $this->get(route('perfumes.show', $perfume))
         ->assertOk();
+});
+
+test('shows success message after creating a perfume', function () {
+    // Create materials, bottles, and add ingredients to blend version
+    $lavender = makeMaterial();
+    $rose = makeMaterial(['name' => 'Rose']);
+    $lavenderBottle = makeBottle($lavender);
+    $roseBottle = makeBottle($rose);
+    addIngredient($this->blendVersion, $lavender, $lavenderBottle->id);
+    addIngredient($this->blendVersion, $rose, $roseBottle->id);
+
+    // Create perfume from blend show page
+    $response = $this
+        ->from(route('blends.show', $this->blend))
+        ->followingRedirects()
+        ->post(route('perfumes.store', $this->blendVersion), [
+            'name' => 'Test Perfume',
+            'size' => 50,
+            'concentration' => 20,
+        ]);
+
+    // Assert success message is shown on perfume show page
+    $perfume = Perfume::where('name', 'Test Perfume')->first();
+    $perfumeVersion = $perfume->versions()->first();
+    $crawler = crawl($response);
+
+    expect($crawler->filter("div#version-{$perfumeVersion->id}")->text())->toContain('Perfume created');
 });
 
 it('displays an error when creating a perfume from a version with missing bottle or density data', function () {
