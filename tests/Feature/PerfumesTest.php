@@ -97,7 +97,7 @@ test('shows success message after creating a perfume', function () {
     $perfumeVersion = $perfume->versions()->first();
     $crawler = crawl($response);
 
-    expect($crawler->filter("div#version-{$perfumeVersion->id}")->text())->toContain('Perfume created');
+    expect($crawler->filter("div#version-{$perfumeVersion->id}")->text())->toContain('Perfume added');
 });
 
 it('displays an error when creating a perfume from a version with missing bottle or density data', function () {
@@ -311,4 +311,48 @@ test('empty perfume name shows error when updating', function () {
     $crawler = crawl($response);
     expect($crawler->filter('div[data-perfume-id="'.$perfume1->id.'"]')->text())->toContain('Enter a perfume name');
     expect($crawler->filter('div[data-perfume-id="'.$perfume2->id.'"]')->text())->not->toContain('Enter a perfume name');
+});
+
+test('header contains a link back to the perfume index page', function () {
+    $perfume = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
+
+    [, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
+
+    $header = $crawler->filter('header');
+    expect($header->selectLink('Perfumes')->count())->toBe(1);
+    expect($header->selectLink('Perfumes')->link()->getUri())->toBe(route('perfumes.index'));
+});
+
+test('perfume can be deleted from the index page', function () {
+    $perfume = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
+
+    // Send request to delete perfume
+    $response = $this
+        ->from(route('perfumes.index'))
+        ->followingRedirects()
+        ->delete(route('perfumes.destroy', $perfume));
+
+    // Assert perfume is deleted from database
+    $this->assertDatabaseMissing('perfumes', ['id' => $perfume->id]);
+
+    // Assert perfume is not displayed on index page
+    [, $crawler] = getPageCrawler($this->user, route('perfumes.index'));
+
+    expect($crawler->text())->not->toContain('Test Perfume deleted');
+    expect($crawler->filter('div[data-perfume-id="'.$perfume->id.'"]')->count())->toBe(0);
+});
+
+test('shows success message after deleting a perfume', function () {
+    // Create perfume
+    $perfume = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
+
+    // Send request to delete perfume and follow redirect to index page
+    $response = $this
+        ->from(route('perfumes.index'))
+        ->followingRedirects()
+        ->delete(route('perfumes.destroy', $perfume));
+
+    // Get HTML for index page and assert success message is displayed
+    $crawler = crawl($response);
+    expect($crawler->text())->toContain('Test Perfume deleted');
 });

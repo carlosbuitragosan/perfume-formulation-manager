@@ -303,6 +303,19 @@ describe('Blend Display & Breakdown', function () {
         // Assert button to create new blend is present
         expect($crawler->selectLink('New Version')->count())->toBe(1);
     });
+
+    test('header contains a link back to the blends index page', function () {
+        $blend = Blend::factory()->create([
+            'user_id' => $this->user->id,
+            'name' => 'Test Blend',
+        ]);
+
+        [, $crawler] = getPageCrawler($this->user, route('blends.show', $blend));
+        $header = $crawler->filter('header');
+
+        expect($header->selectLink('Blends')->count())->toBe(1);
+        expect($header->selectLink('Blends')->link()->getUri())->toBe(route('blends.index'));
+    });
 });
 
 // ==========================================================

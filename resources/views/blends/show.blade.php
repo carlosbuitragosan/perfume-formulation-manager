@@ -1,6 +1,9 @@
 <x-app-layout>
    <x-slot name="header">
-      <div class="flex items-center justify-between">
+      <div id="header">
+         <div class="mb-2">
+            <a href="{{ route('blends.index') }}" class="text-xs">Blends</a>
+         </div>
          <h2 class="font-semibold text-xl mr-2">{{ $blend->name }}</h2>
       </div>
    </x-slot>
@@ -14,7 +17,7 @@
       <x-flash type="error">{{ session('error') }}</x-flash>
    @endif
 
-   <div class="p-4 space-y-4">
+   <div class="p-6 space-y-6">
       @foreach ($blendVersions as $blendVersion)
          @php
             $blendIngredients = $blendVersion->formattedIngredients();

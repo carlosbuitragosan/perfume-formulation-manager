@@ -62,7 +62,7 @@ class PerfumeController extends Controller
         return redirect()
             ->route('perfumes.show', $perfume)
             ->withFragment('version-'.$perfumeVersion->id)
-            ->with('success', 'Perfume created')
+            ->with('success', 'Perfume added')
             ->with('version_id', $perfumeVersion->id);
     }
 
@@ -149,5 +149,14 @@ class PerfumeController extends Controller
 
         return redirect()
             ->route('perfumes.index');
+    }
+
+    public function destroy(Perfume $perfume)
+    {
+        $perfume->delete();
+
+        return redirect()
+            ->route('perfumes.index')
+            ->with('success', "{$perfume->name} deleted");
     }
 }

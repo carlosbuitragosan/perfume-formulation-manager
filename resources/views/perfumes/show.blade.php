@@ -1,11 +1,14 @@
 <x-app-layout>
    <x-slot name="header">
       <div id="header">
+         <div class="mb-2">
+            <a href="{{ route('perfumes.index') }}" class="text-xs">Perfumes</a>
+         </div>
          <h2 class="font-semibold text-xl mr-2">{{ $perfume->name }}</h2>
       </div>
    </x-slot>
 
-   <div class="p-4 space-y-4">
+   <div class="p-6 space-y-6">
       @foreach ($perfumeVersionBreakdowns as $breakdown)
          @php
             $perfumeVersion = $breakdown['version'];

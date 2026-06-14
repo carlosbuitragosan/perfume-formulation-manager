@@ -6,11 +6,15 @@
 
 <x-app-layout>
    <x-slot name="header">
-      <h2 class="font-semibold text-xl">View Bottles</h2>
-      <span class="text-sm">{{ $material->name }}</span>
+      <div id="header">
+         <div class="mb-2">
+            <a href="{{ route('materials.index') }}" class="text-xs">Materials</a>
+         </div>
+      </div>
+      <h2 class="font-semibold text-xl">{{ $material->name }}</h2>
    </x-slot>
 
-   <div class="p-4 space-y-4">
+   <div class="p-6 space-y-6">
       
       @if ($blendIngredient && ! $selectedBottleId)
          <x-flash type="warning">

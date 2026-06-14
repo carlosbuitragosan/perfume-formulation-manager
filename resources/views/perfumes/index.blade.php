@@ -5,7 +5,12 @@
       </div>
    </x-slot>
 
-   <div class="p-4 space-y-4">
+   <div class="p-6 space-y-6">
+      {{-- success message for perfume deletion --}}
+      @if (session('success'))
+         <x-flash type="success" class="mt-10">{{ session('success') }}</x-flash>
+      @endif
+
       @if ($perfumes->isNotEmpty())
          <div class="space-y-3">
             @foreach ($perfumes as $perfume)
