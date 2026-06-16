@@ -11,25 +11,18 @@ class PerfumeController extends Controller
 {
     public function index()
     {
-        $perfumes = Perfume::all();
+        $perfumes = Perfume::whereHas('blendVersion.blend', function ($query) {
+            $query->where('user_id', auth()->id());
+        })->get();
 
         return view('perfumes.index', compact('perfumes'));
     }
 
     public function create(Request $request, BlendVersion $blendVersion)
     {
-        $problems = [];
+        $this->authorize('view', $blendVersion);
 
-        foreach ($blendVersion->ingredients as $ingredient) {
-            if (! $ingredient->bottle) {
-                $problems[] = "{$ingredient->material->name} is missing a bottle.";
-
-                continue; // skip density check if bottle is missing
-            }
-            if (! $ingredient->bottle->density) {
-                $problems[] = "{$ingredient->material->name} is missing density.";
-            }
-        }
+        $problems = $blendVersion->perfumeCreationProblems();
 
         if (! empty($problems)) {
             return redirect()
@@ -44,6 +37,8 @@ class PerfumeController extends Controller
 
     public function store(Request $request, BlendVersion $blendVersion)
     {
+        $this->authorize('view', $blendVersion);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'size' => 'required|numeric|min:0.1',
@@ -68,6 +63,8 @@ class PerfumeController extends Controller
 
     public function show(Perfume $perfume)
     {
+        $this->authorize('view', $perfume);
+
         $blendVersionIngredients = $perfume
             ->blendVersion
             ->ingredientsOrdered(['material', 'bottle']);
@@ -138,6 +135,8 @@ class PerfumeController extends Controller
 
     public function update(UpdatePerfumeRequest $request, Perfume $perfume)
     {
+        $this->authorize('update', $perfume);
+
         $validated = $request->validated();
 
         $perfume->update([
@@ -153,6 +152,8 @@ class PerfumeController extends Controller
 
     public function destroy(Perfume $perfume)
     {
+        $this->authorize('delete', $perfume);
+
         $perfume->delete();
 
         return redirect()

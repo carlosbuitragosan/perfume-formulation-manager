@@ -9,7 +9,7 @@ class BlendVersionPolicy
 {
     public function view(User $user, BlendVersion $blendVersion): bool
     {
-        return false;
+        return $blendVersion->blend->user_id === $user->id;
     }
 
     public function update(User $user, BlendVersion $blendVersion): bool

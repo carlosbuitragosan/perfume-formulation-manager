@@ -313,7 +313,7 @@ test('empty perfume name shows error when updating', function () {
     expect($crawler->filter('div[data-perfume-id="'.$perfume2->id.'"]')->text())->not->toContain('Enter a perfume name');
 });
 
-test('header contains a link back to the perfume index page', function () {
+test('header in show page contains a link back to the perfume index page', function () {
     $perfume = $this->blendVersion->perfumes()->create(['name' => 'Test Perfume']);
 
     [, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
@@ -355,4 +355,34 @@ test('shows success message after deleting a perfume', function () {
     // Get HTML for index page and assert success message is displayed
     $crawler = crawl($response);
     expect($crawler->text())->toContain('Test Perfume deleted');
+});
+
+test('header in show page contains a link to the blend that created the perfume', function () {
+    // Create materials
+    $lavender = makeMaterial();
+    $rose = makeMaterial(['name' => 'Rose']);
+
+    // Create bottles with density
+    $lavenderBottle = makeBottle($lavender, ['density' => 0.9]);
+    $roseBottle = makeBottle($rose, ['density' => 0.8]);
+
+    // Add ingredients to version
+    addIngredient($this->blendVersion, $lavender, $lavenderBottle->id, 5, 1);
+    addIngredient($this->blendVersion, $rose, $roseBottle->id, 6, 25);
+
+    // Create perfume from blend version
+    $perfume = $this->blendVersion->perfumes()->create([
+        'name' => 'Test Perfume',
+    ]);
+
+    // Get HTML for the show page
+    [, $crawler] = getPageCrawler($this->user, route('perfumes.show', $perfume));
+
+    // Assert header contains link to blend with reference to version
+    $header = $crawler->filter('header');
+    $blendLink = route('blends.show', $this->blend).'#version-'.$this->blendVersion->id;
+    $link = $crawler->filter('[data-testid="source-blend-link"]');
+
+    expect($link->attr('href'))->toBe($blendLink);
+    expect($link->text())->toBe("Blend: {$this->blend->name}, Version {$this->blendVersion->version}");
 });

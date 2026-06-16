@@ -30,7 +30,7 @@
             tabindex="0"
             class="relative card px-3 py-3"
          >
-            <div class="font-semibold mb-3 pt-2">Version {{ $blendVersion->version }}</div>
+            <div class="text-sm mb-3 pt-2">Version {{ $blendVersion->version }}</div>
 
             <div class="overflow-x-auto">
                <table class="w-full text-sm border-separate border-spacing-x-3">

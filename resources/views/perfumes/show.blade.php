@@ -1,10 +1,20 @@
 <x-app-layout>
    <x-slot name="header">
       <div id="header">
-         <div class="mb-2">
+         <div class="mb-4">
             <a href="{{ route('perfumes.index') }}" class="text-xs">Perfumes</a>
          </div>
          <h2 class="font-semibold text-xl mr-2">{{ $perfume->name }}</h2>
+         <div>
+            <a
+               data-testid="source-blend-link"
+               class="text-xs"
+               href="{{ route('blends.show', $perfume->blendVersion->blend) . '#version-' . $perfume->blendVersion->id }}"
+            >
+               Blend: {{ $perfume->blendVersion->blend->name }}, Version
+               {{ $perfume->blendVersion->version }}
+            </a>
+         </div>
       </div>
    </x-slot>
 

@@ -115,4 +115,22 @@ class BlendVersion extends Model
             ]);
         }
     }
+
+    public function perfumeCreationProblems(): array
+    {
+        $problems = [];
+
+        foreach ($this->ingredients as $ingredient) {
+            if (! $ingredient->bottle) {
+                $problems[] = "{$ingredient->material->name} is missing a bottle.";
+
+                continue; // skip density check if bottle is missing
+            }
+            if (! $ingredient->bottle->density) {
+                $problems[] = "{$ingredient->material->name} is missing density.";
+            }
+        }
+
+        return $problems;
+    }
 }
