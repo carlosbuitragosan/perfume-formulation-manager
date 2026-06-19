@@ -189,20 +189,19 @@
 {{ old('notes', $material->notes) }}</textarea
             >
          </label>
+         <div class="mt-4 flex gap-2">
+            <x-primary-button
+               type="submit"
+               form="material-update-{{ $material->id }}"
+               class="bg-green-600 hover:bg-green-700"
+            >
+               SAVE
+            </x-primary-button>
+
+            <x-cancel-link href="{{ route('materials.index') }}#material-{{ $material->id }}">
+               CANCEL
+            </x-cancel-link>
+         </div>
       </form>
-
-      <div class="mt-4 flex gap-2">
-         <x-primary-button
-            type="submit"
-            form="material-update-{{ $material->id }}"
-            class="bg-green-600 hover:bg-green-700"
-         >
-            SAVE
-         </x-primary-button>
-
-         <x-cancel-link href="{{ route('materials.index') }}#material-{{ $material->id }}">
-            CANCEL
-         </x-cancel-link>
-      </div>
    </div>
 </x-app-layout>

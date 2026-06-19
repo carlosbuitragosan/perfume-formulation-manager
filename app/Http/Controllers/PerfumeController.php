@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Perfume\StorePerfumeRequest;
 use App\Http\Requests\Perfume\UpdatePerfumeRequest;
 use App\Models\BlendVersion;
 use App\Models\Perfume;
@@ -35,15 +36,11 @@ class PerfumeController extends Controller
         return view('perfumes.create', compact('blendVersion'));
     }
 
-    public function store(Request $request, BlendVersion $blendVersion)
+    public function store(StorePerfumeRequest $request, BlendVersion $blendVersion)
     {
         $this->authorize('view', $blendVersion);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'size' => 'required|numeric|min:0.1',
-            'concentration' => 'required|numeric|min:0.1|max:100',
-        ]);
+        $validated = $request->validated();
 
         $perfume = $blendVersion->perfumes()->create([
             'name' => $validated['name'],
@@ -65,70 +62,10 @@ class PerfumeController extends Controller
     {
         $this->authorize('view', $perfume);
 
-        $blendVersionIngredients = $perfume
-            ->blendVersion
-            ->ingredientsOrdered(['material', 'bottle']);
-
-        // Pure total  of essential oils in the original version
-        $blendVersionPureTotal = $blendVersionIngredients->sum(function ($ingredient) {
-            return $ingredient->pureAmount();
-        });
-
-        // Create collection to hold data for each perfume version
-        $perfumeVersionBreakdowns = collect();
-
-        foreach ($perfume->versions as $perfumeVersion) {
-
-            // Pure total of essential oils (pure drops)
-            $perfumePureTotal = ($perfumeVersion->concentration / 100) * $perfumeVersion->size;
-
-            $perfumeVersionIngredients = $blendVersionIngredients->map(function ($ingredient) use (
-                $blendVersionPureTotal,
-                $perfumePureTotal,
-                $perfumeVersion
-            ) {
-                // Percentage of this ingredient in the formula
-                $purePercentage = $ingredient->purePercentage($blendVersionPureTotal);
-
-                // Amount of this ingredient in ml
-                $ingredientMl = ($purePercentage / 100) * $perfumePureTotal;
-
-                // Convert ml to grams using bottle density
-                $ingredientGrams = $ingredientMl * $ingredient->bottle->density;
-
-                // Percentage of this ingredient in the final perfume
-                $ingredientPercentage = ($ingredientMl / $perfumeVersion->size) * 100;
-
-                return [
-                    'material' => $ingredient->material->name,
-                    'material_id' => $ingredient->material->id,
-                    'variant' => $ingredient->variant(),
-                    'percentage' => rtrim(rtrim(number_format($ingredientPercentage, 2, '.', ''), '0'), '.'),
-                    'grams' => rtrim(rtrim(number_format($ingredientGrams, 3, '.', ''), '0'), '.'),
-                ];
-            });
-
-            // Alcohol calculation
-            $alcoholMl = $perfumeVersion->size - $perfumePureTotal;
-
-            // Approximate perfumers alcohol density
-            $alcoholDensity = 0.85;
-            $alcoholGrams = $alcoholMl * $alcoholDensity;
-
-            // Add alcohol row
-            $perfumeVersionIngredients->push([
-                'material' => 'Alcohol',
-                'material_id' => null,
-                'variant' => null,
-                'percentage' => rtrim(rtrim(number_format((100 - $perfumeVersion->concentration), 2, '.', ''), '0'), '.'),
-                'grams' => rtrim(rtrim(number_format($alcoholGrams, 3, '.', ''), '0'), '.'),
-            ]);
-
-            $perfumeVersionBreakdowns->push([
-                'version' => $perfumeVersion,
-                'ingredients' => $perfumeVersionIngredients,
-            ]);
-        }
+        // returns a  collection to hold data for each perfume version
+        $perfumeVersionBreakdowns = $perfume->versions->map(
+            fn ($perfumeVersion) => $perfumeVersion->breakdown()
+        );
 
         return view('perfumes.show', compact('perfume', 'perfumeVersionBreakdowns'));
     }

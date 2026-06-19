@@ -73,7 +73,7 @@ class BlendIngredient extends Model
         };
     }
 
-    public function variant(): string
+    public function variant(): ?string
     {
         $pyramid = $this->material->pyramid ?? [];
 
@@ -88,7 +88,7 @@ class BlendIngredient extends Model
             'heart-top' => 'top-heart',
             'base-heart' => 'heart-base',
             'base-heart-top' => 'all',
-            default => 'heart',
+            default => null,
         };
     }
 
